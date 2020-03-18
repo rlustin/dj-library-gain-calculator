@@ -1,0 +1,7 @@
+name: dj-library-gain-calculator
+version: "0.1.0"
+args:
+    - input:
+        help: Sets the Traktor library file to use
+        required: true
+        index: 1
