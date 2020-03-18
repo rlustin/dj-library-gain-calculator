@@ -1,0 +1,9 @@
+[package]
+name = "dj-library-gain-calculator"
+version = "0.1.0"
+authors = ["Raphaël Lustin <raphael@lustin.fr>"]
+
+[dependencies]
+clap = { version = "2.33.0", features = ["yaml"] }
+quick-xml = { version = "0.17", features = ["serialize"] }
+serde = { version = "1.0", features = ["derive"] }
