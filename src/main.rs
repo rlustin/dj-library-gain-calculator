@@ -2,7 +2,7 @@ extern crate clap;
 extern crate quick_xml;
 extern crate serde;
 
-use clap::{App, load_yaml};
+use clap::{load_yaml, App};
 use traktor::parse_traktor_collection;
 
 mod error;
@@ -26,7 +26,7 @@ fn main() {
             }
             Err(error) => exit_with_error(&error.to_string()),
         },
-        None => exit_with_error("no collection input provided")
+        None => exit_with_error("no collection input provided"),
     }
 }
 
