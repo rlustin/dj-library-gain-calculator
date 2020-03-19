@@ -34,7 +34,7 @@ fn handle_audrey(path: &str) -> Result<DecodedFile, &str> {
             path: path.to_string(),
             channels: desc.channel_count(),
             rate: desc.sample_rate(),
-            data: data,
+            data
         })
     } else {
         Err("file not found")
@@ -139,8 +139,8 @@ fn main() {
                 for entry in nml.collection.entries {
                     println!(
                         "{} — {}",
-                        entry.artist.unwrap_or("[none]".to_string()),
-                        entry.title.unwrap_or("[none]".to_string())
+                        entry.artist.unwrap_or_else(|| "[none]".to_string()),
+                        entry.title.unwrap_or_else(|| "[none]".to_string())
                     );
                 }
             }
