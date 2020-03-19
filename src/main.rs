@@ -1,5 +1,7 @@
 extern crate clap;
+extern crate minimp3;
 extern crate quick_xml;
+extern crate rayon;
 extern crate serde;
 
 use clap::{load_yaml, App};
@@ -8,6 +10,7 @@ use traktor::parse_traktor_collection;
 mod error;
 mod models;
 mod traktor;
+mod analysis;
 
 fn main() {
     let yaml = load_yaml!("cli.yml");
@@ -16,11 +19,13 @@ fn main() {
     match matches.value_of("input") {
         Some(input) => match parse_traktor_collection(input) {
             Ok(nml) => {
+                analysis::collection_analysis(&nml);
+
                 for entry in nml.collection.entries {
                     println!(
                         "{} — {}",
-                        entry.artist.unwrap_or("[none]".to_string()),
-                        entry.title.unwrap_or("[none]".to_string())
+                        entry.artist.unwrap_or_else(|| "[none]".to_string()),
+                        entry.title.unwrap_or_else(|| "[none]".to_string())
                     );
                 }
             }
