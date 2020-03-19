@@ -134,6 +134,8 @@ fn main() {
     match matches.value_of("input") {
         Some(input) => match parse_traktor_collection(input) {
             Ok(nml) => {
+                collection_analysis(&nml);
+
                 for entry in nml.collection.entries {
                     println!(
                         "{} — {}",
