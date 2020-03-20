@@ -5,6 +5,7 @@ use std::convert::TryInto;
 use std::ffi::OsStr;
 use std::fs::File;
 use std::path::Path;
+use ebur128::{EbuR128, Mode};
 
 struct DecodedFile {
     path: String,
@@ -97,7 +98,7 @@ pub fn collection_analysis(collection: &models::Nml) {
             _ => Err("unknown file type"),
         };
 
-        match decode_result {
+        let decoded = match decode_result {
             Ok(decoded) => {
                 eprintln!(
                     "name: {}\nchannels: {} sample-rate: {}, frame count: {}",
@@ -106,12 +107,21 @@ pub fn collection_analysis(collection: &models::Nml) {
                     decoded.rate,
                     decoded.data.len() / (decoded.channels as usize)
                 );
+                decoded
             }
             Err(e) => {
                 eprintln!("{}", e);
+                return;
             }
-        }
+        };
         // analyse
+        let mut ebu = EbuR128::new(decoded.channels, decoded.rate, Mode::I|Mode::TRUE_PEAK).unwrap();
+        ebu.add_frames_f32(&decoded.data).unwrap();
+
         // out integrated lufs
+        eprintln!("Global loundness: {}", ebu.loudness_global().unwrap());
+        for i in 0..decoded.channels {
+            eprintln!("True peak (channel {}) {}", i, ebu.true_peak(i).unwrap());
+        }
     });
 }
