@@ -7,6 +7,7 @@ edition = "2018"
 [dependencies]
 audrey = "0.2"
 clap = { version = "2.33.0", features = ["yaml"] }
+ebur128 = "0.1.0"
 minimp3 = "0.3"
 quick-xml = { version = "0.17", features = ["serialize"] }
 rayon = "1.3"
