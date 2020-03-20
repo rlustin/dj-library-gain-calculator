@@ -1,9 +1,8 @@
-use crate::traktor::parse_traktor_collection;
+use crate::traktor::deserialize_collection;
 use clap::{load_yaml, App};
 
 mod analysis;
 mod error;
-mod models;
 mod traktor;
 
 fn main() {
@@ -11,7 +10,7 @@ fn main() {
     let matches = App::from(yaml).get_matches();
 
     match matches.value_of("input") {
-        Some(input) => match parse_traktor_collection(input) {
+        Some(input) => match deserialize_collection(input) {
             Ok(nml) => {
                 analysis::collection_analysis(&nml);
 
