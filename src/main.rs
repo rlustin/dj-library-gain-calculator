@@ -1,10 +1,10 @@
-use clap::{load_yaml, App};
 use crate::traktor::parse_traktor_collection;
+use clap::{load_yaml, App};
 
+mod analysis;
 mod error;
 mod models;
 mod traktor;
-mod analysis;
 
 fn main() {
     let yaml = load_yaml!("cli.yml");

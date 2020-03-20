@@ -1,10 +1,10 @@
-use rayon::prelude::*;
+use crate::models;
 use minimp3::{Decoder, Error, Frame};
+use rayon::prelude::*;
 use std::convert::TryInto;
 use std::ffi::OsStr;
 use std::fs::File;
 use std::path::Path;
-use crate::models;
 
 struct DecodedFile {
     path: String,
@@ -23,7 +23,7 @@ fn handle_audrey(path: &str) -> Result<DecodedFile, &str> {
             path: path.to_string(),
             channels: desc.channel_count(),
             rate: desc.sample_rate(),
-            data
+            data,
         })
     } else {
         Err("file not found")
