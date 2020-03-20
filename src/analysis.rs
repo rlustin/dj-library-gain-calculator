@@ -6,6 +6,9 @@ use std::convert::TryInto;
 use std::ffi::OsStr;
 use std::fs::File;
 use std::path::Path;
+use hound;
+use claxon;
+use audrey;
 
 struct DecodedFile {
     path: String,
@@ -14,12 +17,28 @@ struct DecodedFile {
     data: Vec<f32>, // interleaved
 }
 
+fn i16_to_float(integer: i16) -> f32 {
+    (integer as f32) / (2_u32.pow(14) as f32)
+}
+
+fn i16_in_i32_to_float(integer: i32) -> f32 {
+    (integer as f32) / (2_u32.pow(14) as f32)
+}
+
+fn i24_to_float(integer: i32) -> f32 {
+    // most significant byte is 0
+    (integer as f32) / (2_u32.pow(22) as f32)
+}
+
+fn i32_to_float(integer: i32) -> f32 {
+    (integer as f32) / (2_u32.pow(30) as f32)
+}
+
 fn handle_audrey(path: &str) -> Result<DecodedFile, &str> {
     let maybe_file = audrey::read::open(&path);
     if let Ok(mut file) = maybe_file {
         let desc = file.description();
         let data: Vec<f32> = file.samples().map(Result::unwrap).collect::<Vec<_>>();
-
         Ok(DecodedFile {
             path: path.to_string(),
             channels: desc.channel_count(),
@@ -30,6 +49,60 @@ fn handle_audrey(path: &str) -> Result<DecodedFile, &str> {
         Err("file not found")
     }
 }
+
+fn handle_hound(path: &str) -> Result<DecodedFile, &str> {
+    match hound::WavReader::open(path) {
+        Ok(mut reader) => {
+            let mut data = Vec::<f32>::new();
+            let spec = reader.spec();
+            reader.samples::<f32>().map(Result::unwrap).for_each(|s| {
+                data.push(s)
+            });
+            return Ok(DecodedFile {
+                path: path.to_string(),
+                channels: spec.channels.into(),
+                rate: spec.sample_rate,
+                data,
+            });
+        }
+        Err(_) => {
+            return Err("invalid wav");
+        }
+    }
+}
+
+fn handle_claxon(path: &str) -> Result<DecodedFile, &str> {
+    match claxon::FlacReader::open(path) {
+        Ok(mut reader) => {
+            let conversion_function = match reader.streaminfo().bits_per_sample {
+                16 => {
+                    i16_in_i32_to_float
+                }
+                24 => {
+                    i24_to_float
+                }
+                32 => {
+                    i32_to_float
+                }
+                _ => {
+                    return Err("flac sample type not supported");
+                }
+            };
+            let data = reader.samples().map(Result::unwrap).map(conversion_function).collect::<Vec<f32>>();
+            let spec = reader.streaminfo();
+            return Ok(DecodedFile {
+                path: path.to_string(),
+                channels: spec.channels,
+                rate: spec.sample_rate,
+                data,
+            });
+        }
+        Err(_) => {
+            return Err("invalid flac");
+        }
+    }
+}
+
 
 fn handle_minimp3(path: &str) -> Result<DecodedFile, &str> {
     match File::open(path) {
@@ -58,7 +131,7 @@ fn handle_minimp3(path: &str) -> Result<DecodedFile, &str> {
                         }
                         // i16 -> f32
                         data.iter().for_each(|s| {
-                            pcm_data.push((*s as f32) / (2_u32.pow(14) as f32));
+                            pcm_data.push(i16_to_float(*s));
                         });
                     }
                     Err(Error::Eof) => break Ok(pcm_data),
@@ -93,7 +166,9 @@ pub fn collection_analysis(collection: &models::Nml) {
             .and_then(OsStr::to_str)
             .unwrap_or("??")
         {
-            "wav" | "flac" | "ogg" => handle_audrey(&path),
+            "ogg" => handle_audrey(&path),
+            "wav" => handle_hound(&path),
+            "flac" => handle_claxon(&path),
             "mp3" => handle_minimp3(&path),
             _ => Err("unknown file type"),
         };
