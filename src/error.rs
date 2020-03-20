@@ -8,7 +8,7 @@ pub enum AppError {
 }
 
 impl std::fmt::Display for AppError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
             AppError::GenericError(ref message) => f.write_str(message),
         }
