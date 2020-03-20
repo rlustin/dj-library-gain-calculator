@@ -1,7 +1,7 @@
 [package]
 name = "dj-library-gain-calculator"
 version = "0.1.0"
-authors = ["Raphaël Lustin <raphael@lustin.fr>"]
+authors = ["Paul Adenot <paul@paul.cx>", "Raphaël Lustin <raphael@lustin.fr>"]
 edition = "2018"
 
 [dependencies]
