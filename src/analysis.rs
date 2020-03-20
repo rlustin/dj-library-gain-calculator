@@ -1,14 +1,14 @@
 use crate::models;
+use audrey;
+use claxon;
 use ebur128::{EbuR128, Mode};
+use hound;
 use minimp3::{Decoder, Error, Frame};
 use rayon::prelude::*;
 use std::convert::TryInto;
 use std::ffi::OsStr;
 use std::fs::File;
 use std::path::Path;
-use hound;
-use claxon;
-use audrey;
 
 struct DecodedFile {
     path: String,
@@ -55,9 +55,10 @@ fn handle_hound(path: &str) -> Result<DecodedFile, &str> {
         Ok(mut reader) => {
             let mut data = Vec::<f32>::new();
             let spec = reader.spec();
-            reader.samples::<f32>().map(Result::unwrap).for_each(|s| {
-                data.push(s)
-            });
+            reader
+                .samples::<f32>()
+                .map(Result::unwrap)
+                .for_each(|s| data.push(s));
             return Ok(DecodedFile {
                 path: path.to_string(),
                 channels: spec.channels.into(),
@@ -75,20 +76,18 @@ fn handle_claxon(path: &str) -> Result<DecodedFile, &str> {
     match claxon::FlacReader::open(path) {
         Ok(mut reader) => {
             let conversion_function = match reader.streaminfo().bits_per_sample {
-                16 => {
-                    i16_in_i32_to_float
-                }
-                24 => {
-                    i24_to_float
-                }
-                32 => {
-                    i32_to_float
-                }
+                16 => i16_in_i32_to_float,
+                24 => i24_to_float,
+                32 => i32_to_float,
                 _ => {
                     return Err("flac sample type not supported");
                 }
             };
-            let data = reader.samples().map(Result::unwrap).map(conversion_function).collect::<Vec<f32>>();
+            let data = reader
+                .samples()
+                .map(Result::unwrap)
+                .map(conversion_function)
+                .collect::<Vec<f32>>();
             let spec = reader.streaminfo();
             return Ok(DecodedFile {
                 path: path.to_string(),
@@ -102,7 +101,6 @@ fn handle_claxon(path: &str) -> Result<DecodedFile, &str> {
         }
     }
 }
-
 
 fn handle_minimp3(path: &str) -> Result<DecodedFile, &str> {
     match File::open(path) {
