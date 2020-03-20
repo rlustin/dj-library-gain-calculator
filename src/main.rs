@@ -5,7 +5,7 @@ extern crate rayon;
 extern crate serde;
 
 use clap::{load_yaml, App};
-use traktor::parse_traktor_collection;
+use crate::traktor::parse_traktor_collection;
 
 mod error;
 mod models;
