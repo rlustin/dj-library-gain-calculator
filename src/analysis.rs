@@ -1,11 +1,11 @@
 use crate::models;
+use ebur128::{EbuR128, Mode};
 use minimp3::{Decoder, Error, Frame};
 use rayon::prelude::*;
 use std::convert::TryInto;
 use std::ffi::OsStr;
 use std::fs::File;
 use std::path::Path;
-use ebur128::{EbuR128, Mode};
 
 struct DecodedFile {
     path: String,
@@ -115,7 +115,8 @@ pub fn collection_analysis(collection: &models::Nml) {
             }
         };
         // analyse
-        let mut ebu = EbuR128::new(decoded.channels, decoded.rate, Mode::I|Mode::TRUE_PEAK).unwrap();
+        let mut ebu =
+            EbuR128::new(decoded.channels, decoded.rate, Mode::I | Mode::TRUE_PEAK).unwrap();
         ebu.add_frames_f32(&decoded.data).unwrap();
 
         // out integrated lufs
