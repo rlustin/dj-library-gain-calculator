@@ -3,7 +3,7 @@ use serde::Deserialize;
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct Album {
     #[serde(rename = "TITLE")]
-    pub title: String,
+    pub title: Option<String>,
     #[serde(rename = "TRACK")]
     pub track: Option<i64>,
 }
