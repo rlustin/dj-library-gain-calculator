@@ -11,8 +11,9 @@ fn main() {
 
     match matches.value_of("input") {
         Some(input) => match deserialize_collection(input) {
-            Ok(nml) => {
-                analysis::collection_analysis(&nml);
+            Ok(mut nml) => {
+                analysis::collection_analysis(&mut nml);
+                eprintln!("{:?}", nml);
 
                 for entry in nml.collection.entries {
                     println!(
