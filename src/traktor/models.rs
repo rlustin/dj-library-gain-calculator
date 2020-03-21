@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize)]
 pub struct Album {
     #[serde(rename = "TITLE")]
     pub title: Option<String>,
@@ -8,7 +8,7 @@ pub struct Album {
     pub track: Option<i64>,
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize)]
 pub struct Collection {
     #[serde(rename = "ENTRIES")]
     pub entries_count: i64,
@@ -16,7 +16,7 @@ pub struct Collection {
     pub entries: Vec<Entry>,
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize)]
 pub struct Entry {
     #[serde(rename = "ALBUM")]
     pub struc: Option<Album>,
@@ -44,7 +44,7 @@ pub struct Entry {
     pub title: Option<String>,
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize)]
 pub struct Head {
     #[serde(rename = "COMPANY")]
     pub company: String,
@@ -52,7 +52,7 @@ pub struct Head {
     pub program: String,
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize)]
 pub struct Info {
     #[serde(rename = "BITRATE")]
     pub bitrate: Option<i64>,
@@ -82,7 +82,7 @@ pub struct Info {
     pub release_date: Option<String>,
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize)]
 pub struct CueV2 {
     #[serde(rename = "TYPE")]
     pub cue_type: i64,
@@ -100,7 +100,7 @@ pub struct CueV2 {
     pub start: f64,
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize)]
 pub struct Location {
     #[serde(rename = "DIR")]
     pub directory: String,
@@ -112,7 +112,7 @@ pub struct Location {
     pub volume_id: String,
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize)]
 pub struct Loudness {
     #[serde(rename = "ANALYZED_DB")]
     pub analyzed_db: f64,
@@ -122,19 +122,19 @@ pub struct Loudness {
     pub peak_db: f64,
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize)]
 pub struct ModificationInfo {
     #[serde(rename = "AUTHOR_TYPE")]
     pub author_type: String,
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize)]
 pub struct MusicalKey {
     #[serde(rename = "VALUE")]
     pub value: String,
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize)]
 #[serde(rename = "NML")]
 pub struct Nml {
     #[serde(rename = "HEAD")]
