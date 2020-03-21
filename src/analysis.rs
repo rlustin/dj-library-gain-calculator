@@ -153,55 +153,59 @@ fn handle_minimp3(path: &str) -> Result<DecodedFile, &str> {
 }
 
 pub fn collection_analysis(collection: &mut models::Nml) {
-    collection.collection.entries.par_iter_mut().for_each(|entry_ref| {
-        let mut entry = entry_ref.lock();
-        let mut path = entry.location.directory.clone();
-        path.retain(|c| c != ':');
-        path.push_str(&entry.location.file);
-        // open file and decode
-        let decode_result = match Path::new(&entry.location.file)
-            .extension()
-            .and_then(OsStr::to_str)
-            .unwrap_or("??")
-        {
-            "ogg" => handle_audrey(&path),
-            "wav" => handle_hound(&path),
-            "flac" => handle_claxon(&path),
-            "mp3" => handle_minimp3(&path),
-            _ => Err("unknown file type"),
-        };
+    collection
+        .collection
+        .entries
+        .par_iter_mut()
+        .for_each(|entry_ref| {
+            let mut entry = entry_ref.lock();
+            let mut path = entry.location.directory.clone();
+            path.retain(|c| c != ':');
+            path.push_str(&entry.location.file);
+            // open file and decode
+            let decode_result = match Path::new(&entry.location.file)
+                .extension()
+                .and_then(OsStr::to_str)
+                .unwrap_or("??")
+            {
+                "ogg" => handle_audrey(&path),
+                "wav" => handle_hound(&path),
+                "flac" => handle_claxon(&path),
+                "mp3" => handle_minimp3(&path),
+                _ => Err("unknown file type"),
+            };
 
-        let decoded = match decode_result {
-            Ok(decoded) => {
-                eprintln!(
-                    "name: {}\nchannels: {} sample-rate: {}, frame count: {}",
-                    decoded.path,
-                    decoded.channels,
-                    decoded.rate,
-                    decoded.data.len() / (decoded.channels as usize)
-                );
-                decoded
+            let decoded = match decode_result {
+                Ok(decoded) => {
+                    eprintln!(
+                        "name: {}\nchannels: {} sample-rate: {}, frame count: {}",
+                        decoded.path,
+                        decoded.channels,
+                        decoded.rate,
+                        decoded.data.len() / (decoded.channels as usize)
+                    );
+                    decoded
+                }
+                Err(e) => {
+                    eprintln!("{}", e);
+                    return;
+                }
+            };
+
+            let mut ebu =
+                EbuR128::new(decoded.channels, decoded.rate, Mode::I | Mode::TRUE_PEAK).unwrap();
+            ebu.add_frames_f32(&decoded.data).unwrap();
+
+            // find max peak of all channels: the model has a single value for the peak
+            let mut max_peak = 0.0;
+            for i in 0..decoded.channels {
+                if max_peak < ebu.true_peak(i).unwrap() {
+                    max_peak = ebu.true_peak(i).unwrap();
+                }
             }
-            Err(e) => {
-                eprintln!("{}", e);
-                return;
-            }
-        };
 
-        let mut ebu =
-            EbuR128::new(decoded.channels, decoded.rate, Mode::I | Mode::TRUE_PEAK).unwrap();
-        ebu.add_frames_f32(&decoded.data).unwrap();
-
-        // find max peak of all channels: the model has a single value for the peak
-        let mut max_peak = 0.0;
-        for i in 0..decoded.channels {
-            if max_peak < ebu.true_peak(i).unwrap() {
-                max_peak = ebu.true_peak(i).unwrap();
-            }
-        }
-
-        entry.loudness.as_mut().unwrap().analyzed_db = ebu.loudness_global().unwrap();
-        entry.loudness.as_mut().unwrap().perceived_db = ebu.loudness_global().unwrap();
-        entry.loudness.as_mut().unwrap().peak_db = max_peak;
-    });
+            entry.loudness.as_mut().unwrap().analyzed_db = ebu.loudness_global().unwrap();
+            entry.loudness.as_mut().unwrap().perceived_db = ebu.loudness_global().unwrap();
+            entry.loudness.as_mut().unwrap().peak_db = max_peak;
+        });
 }

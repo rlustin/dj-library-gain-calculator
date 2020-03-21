@@ -1,6 +1,6 @@
-use serde::Deserialize;
-use std::sync::{Arc};
 use parking_lot::Mutex;
+use serde::Deserialize;
+use std::sync::Arc;
 
 #[derive(Debug, Deserialize)]
 pub struct Album {
