@@ -79,9 +79,9 @@ pub struct Info {
     #[serde(rename = "PLAYCOUNT")]
     pub play_count: Option<i64>,
     #[serde(rename = "PLAYTIME")]
-    pub play_time: Option<i64>,
+    pub play_time: Option<String>,
     #[serde(rename = "PLAYTIME_FLOAT")]
-    pub play_time_float: Option<f64>,
+    pub play_time_float: Option<String>,
     #[serde(rename = "RELEASE_DATE")]
     pub release_date: Option<String>,
 }
@@ -95,13 +95,13 @@ pub struct CueV2 {
     #[serde(rename = "HOTCUE")]
     pub hotcue: i64,
     #[serde(rename = "LEN")]
-    pub length: f64,
+    pub length: String,
     #[serde(rename = "NAME")]
     pub name: String,
     #[serde(rename = "REPEATS")]
     pub repeats: i64,
     #[serde(rename = "START")]
-    pub start: f64,
+    pub start: String,
 }
 
 #[derive(Debug, Deserialize)]

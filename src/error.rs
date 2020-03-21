@@ -1,6 +1,7 @@
-use quick_xml;
 use std;
 use std::error::Error;
+
+use quick_xml;
 
 #[derive(Debug)]
 pub enum AppError {
@@ -25,6 +26,12 @@ impl Error for AppError {
 
 impl From<quick_xml::DeError> for AppError {
     fn from(error: quick_xml::DeError) -> AppError {
+        AppError::GenericError(error.to_string())
+    }
+}
+
+impl From<quick_xml::Error> for AppError {
+    fn from(error: quick_xml::Error) -> AppError {
         AppError::GenericError(error.to_string())
     }
 }
