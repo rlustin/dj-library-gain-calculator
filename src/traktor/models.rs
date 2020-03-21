@@ -42,6 +42,8 @@ pub struct Entry {
     pub modified_time: i64,
     #[serde(rename = "MUSICAL_KEY")]
     pub musical_key: Option<MusicalKey>,
+    #[serde(rename = "TEMPO")]
+    pub tempo: Tempo,
     #[serde(rename = "TITLE")]
     pub title: Option<String>,
 }
@@ -145,4 +147,12 @@ pub struct Nml {
     pub collection: Collection,
     #[serde(rename = "VERSION")]
     pub version: i64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Tempo {
+    #[serde(rename = "BPM")]
+    pub bpm: String,
+    #[serde(rename = "BPM_QUALITY")]
+    pub bpm_quality: String,
 }
