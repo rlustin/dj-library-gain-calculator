@@ -1,4 +1,6 @@
 use serde::Deserialize;
+use std::sync::{Arc};
+use parking_lot::Mutex;
 
 #[derive(Debug, Deserialize)]
 pub struct Album {
@@ -13,7 +15,7 @@ pub struct Collection {
     #[serde(rename = "ENTRIES")]
     pub entries_count: i64,
     #[serde(rename = "ENTRY")]
-    pub entries: Vec<Entry>,
+    pub entries: Vec<Arc<Mutex<Entry>>>,
 }
 
 #[derive(Debug, Deserialize)]
