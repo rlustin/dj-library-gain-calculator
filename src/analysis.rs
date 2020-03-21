@@ -152,13 +152,13 @@ fn handle_minimp3(path: &str) -> Result<DecodedFile, &str> {
     }
 }
 
-pub fn collection_analysis(collection: &models::Nml) {
-    collection.collection.entries.par_iter().for_each(|entry| {
+pub fn collection_analysis(collection: &mut models::Nml) {
+    collection.collection.entries.par_iter_mut().for_each(|entry_ref| {
+        let mut entry = entry_ref.lock();
         let mut path = entry.location.directory.clone();
         path.retain(|c| c != ':');
         path.push_str(&entry.location.file);
         // open file and decode
-        eprintln!("starting: {}", path);
         let decode_result = match Path::new(&entry.location.file)
             .extension()
             .and_then(OsStr::to_str)
@@ -187,15 +187,21 @@ pub fn collection_analysis(collection: &models::Nml) {
                 return;
             }
         };
-        // analyse
+
         let mut ebu =
             EbuR128::new(decoded.channels, decoded.rate, Mode::I | Mode::TRUE_PEAK).unwrap();
         ebu.add_frames_f32(&decoded.data).unwrap();
 
-        // out integrated lufs
-        eprintln!("Global loundness: {}", ebu.loudness_global().unwrap());
+        // find max peak of all channels: the model has a single value for the peak
+        let mut max_peak = 0.0;
         for i in 0..decoded.channels {
-            eprintln!("True peak (channel {}) {}", i, ebu.true_peak(i).unwrap());
+            if max_peak < ebu.true_peak(i).unwrap() {
+                max_peak = ebu.true_peak(i).unwrap();
+            }
         }
+
+        entry.loudness.as_mut().unwrap().analyzed_db = ebu.loudness_global().unwrap();
+        entry.loudness.as_mut().unwrap().perceived_db = ebu.loudness_global().unwrap();
+        entry.loudness.as_mut().unwrap().peak_db = max_peak;
     });
 }
