@@ -21,7 +21,7 @@ pub struct Collection {
 #[derive(Debug, Deserialize)]
 pub struct Entry {
     #[serde(rename = "ALBUM")]
-    pub struc: Option<Album>,
+    pub album: Option<Album>,
     #[serde(rename = "ARTIST")]
     pub artist: Option<String>,
     #[serde(rename = "AUDIO_ID")]
