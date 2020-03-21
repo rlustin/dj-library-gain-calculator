@@ -1,4 +1,4 @@
-use crate::models;
+use crate::traktor::models;
 use audrey;
 use claxon;
 use ebur128::{EbuR128, Mode};
