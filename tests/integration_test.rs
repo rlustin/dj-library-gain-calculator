@@ -1,5 +1,6 @@
-use assert_cmd::prelude::*;
 use std::process::Command;
+
+use assert_cmd::prelude::*;
 
 #[test]
 fn it_fails_when_file_does_not_exist() -> Result<(), Box<dyn std::error::Error>> {
