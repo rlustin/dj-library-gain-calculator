@@ -15,11 +15,14 @@ fn main() {
                 analysis::collection_analysis(&mut nml);
                 eprintln!("{:?}", nml);
 
+                let none = "[none]".to_string();
+
                 for entry in nml.collection.entries {
+                    let locked_entry = entry.lock();
                     println!(
                         "{} — {}",
-                        entry.artist.unwrap_or_else(|| "[none]".to_string()),
-                        entry.title.unwrap_or_else(|| "[none]".to_string())
+                        locked_entry.artist.as_ref().unwrap_or_else(|| &none),
+                        locked_entry.title.as_ref().unwrap_or_else(|| &none)
                     );
                 }
             }
