@@ -20,6 +20,11 @@ pub fn deserialize_collection(path: &str) -> Result<Nml, AppError> {
     Ok(nml)
 }
 
+fn kv_to_tuple<'a>(k: &'a str, v: &'a Option<String>) -> (&'a str, &'a str)
+{
+    (k, v.as_ref().unwrap().as_str())
+}
+
 pub fn serialize_collection(
     collection: Nml,
     mut output_stream: Box<dyn Write>,
@@ -59,13 +64,13 @@ pub fn serialize_collection(
         entry_start_tag.push_attribute(("MODIFIED_DATE", entry.modified_date.as_str()));
         entry_start_tag.push_attribute(("MODIFIED_TIME", entry.modified_time.to_string().as_str()));
         if entry.audio_id.is_some() {
-            entry_start_tag.push_attribute(("AUDIO_ID", entry.audio_id.as_ref().unwrap().as_str()));
+            entry_start_tag.push_attribute(kv_to_tuple("AUDIO_ID", &entry.audio_id));
         }
         if entry.title.is_some() {
-            entry_start_tag.push_attribute(("TITLE", entry.title.as_ref().unwrap().as_str()));
+            entry_start_tag.push_attribute(kv_to_tuple("TITLE", &entry.title));
         }
         if entry.artist.is_some() {
-            entry_start_tag.push_attribute(("ARTIST", entry.artist.as_ref().unwrap().as_str()));
+            entry_start_tag.push_attribute(kv_to_tuple("ARTIST", &entry.artist));
         }
         writer.write_event(Event::Start(entry_start_tag))?;
 
@@ -85,7 +90,7 @@ pub fn serialize_collection(
                     .push_attribute(("TRACK", album.track.as_ref().unwrap().to_string().as_str()));
             }
             if album.title.is_some() {
-                album_start_tag.push_attribute(("TITLE", album.title.as_ref().unwrap().as_str()));
+                album_start_tag.push_attribute(kv_to_tuple("TITLE", &album.title));
             }
         }
         writer.write_event(Event::Start(album_start_tag))?;
@@ -106,19 +111,16 @@ pub fn serialize_collection(
             ));
         }
         if entry.info.genre.is_some() {
-            info_start_tag.push_attribute(("GENRE", entry.info.genre.as_ref().unwrap().as_str()));
+            info_start_tag.push_attribute(kv_to_tuple("GENRE", &entry.info.genre));
         }
         if entry.info.label.is_some() {
-            info_start_tag.push_attribute(("LABEL", entry.info.label.as_ref().unwrap().as_str()));
+            info_start_tag.push_attribute(kv_to_tuple("LABEL", &entry.info.label));
         }
         if entry.info.cover_art_id.is_some() {
-            info_start_tag.push_attribute((
-                "COVERARTID",
-                entry.info.cover_art_id.as_ref().unwrap().as_str(),
-            ));
+            info_start_tag.push_attribute(kv_to_tuple("COVERARTID", &entry.info.cover_art_id));
         }
         if entry.info.key.is_some() {
-            info_start_tag.push_attribute(("KEY", entry.info.key.as_ref().unwrap().as_str()));
+            info_start_tag.push_attribute(kv_to_tuple("KEY", &entry.info.key));
         }
         if entry.info.play_count.is_some() {
             info_start_tag.push_attribute((
@@ -146,16 +148,10 @@ pub fn serialize_collection(
         }
         info_start_tag.push_attribute(("IMPORT_DATE", entry.info.import_date.as_str()));
         if entry.info.last_played.is_some() {
-            info_start_tag.push_attribute((
-                "LAST_PLAYED",
-                entry.info.last_played.as_ref().unwrap().as_str(),
-            ));
+            info_start_tag.push_attribute(kv_to_tuple("LAST_PLAYED", &entry.info.last_played));
         }
         if entry.info.release_date.is_some() {
-            info_start_tag.push_attribute((
-                "RELEASE_DATE",
-                entry.info.release_date.as_ref().unwrap().as_str(),
-            ));
+            info_start_tag.push_attribute(kv_to_tuple("RELEASE_DATE", &entry.info.release_date));
         }
         info_start_tag.push_attribute(("FLAGS", entry.info.flags.to_string().as_str()));
         info_start_tag.push_attribute(("FILESIZE", entry.info.file_size.to_string().as_str()));
