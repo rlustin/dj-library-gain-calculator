@@ -21,7 +21,7 @@ pub fn deserialize_collection(path: &str) -> Result<Nml, AppError> {
     Ok(nml)
 }
 
-pub fn serialize_collection(collection: Nml, output_path: &PathBuf) -> Result<(), AppError> {
+pub fn serialize_collection(collection: Nml, mut output_stream: Box<dyn Write>) -> Result<(), AppError> {
     let mut writer = Writer::new(Cursor::new(Vec::new()));
 
     let xml_declaration = BytesDecl::new(b"1.0", Some(b"UTF-8"), Some(b"no"));
@@ -207,9 +207,7 @@ pub fn serialize_collection(collection: Nml, output_path: &PathBuf) -> Result<()
     writer.write_event(Event::End(BytesEnd::borrowed(b"COLLECTION")))?;
     writer.write_event(Event::End(BytesEnd::borrowed(b"NML")))?;
 
-    let mut file = File::create(output_path).unwrap();
-    file.write_all(writer.into_inner().into_inner().as_ref())?;
-    file.sync_all()?;
+    output_stream.write_all(writer.into_inner().into_inner().as_ref())?;
 
     Ok(())
 }
