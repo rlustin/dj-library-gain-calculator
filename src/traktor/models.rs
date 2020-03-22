@@ -152,7 +152,7 @@ pub struct Nml {
 #[derive(Debug, Deserialize)]
 pub struct Tempo {
     #[serde(rename = "BPM")]
-    pub bpm: String,
+    pub bpm: Option<String>,
     #[serde(rename = "BPM_QUALITY")]
     pub bpm_quality: String,
 }

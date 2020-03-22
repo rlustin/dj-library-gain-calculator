@@ -159,7 +159,9 @@ pub fn serialize_collection(
         writer.write_event(Event::End(BytesEnd::borrowed(b"INFO")))?;
 
         let mut tempo_start_tag = BytesStart::owned("TEMPO", "TEMPO".len());
-        tempo_start_tag.push_attribute(("BPM", entry.tempo.bpm.as_str()));
+        if entry.tempo.bpm.is_some() {
+            tempo_start_tag.push_attribute(("BPM", entry.tempo.bpm.as_ref().unwrap().as_str()));
+        }
         tempo_start_tag.push_attribute(("BPM_QUALITY", entry.tempo.bpm_quality.as_str()));
         writer.write_event(Event::Start(tempo_start_tag))?;
         writer.write_event(Event::End(BytesEnd::borrowed(b"TEMPO")))?;
