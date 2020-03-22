@@ -20,8 +20,7 @@ pub fn deserialize_collection(path: &str) -> Result<Nml, AppError> {
     Ok(nml)
 }
 
-fn kv_to_tuple<'a>(k: &'a str, v: &'a Option<String>) -> (&'a str, &'a str)
-{
+fn kv_to_tuple<'a>(k: &'a str, v: &'a Option<String>) -> (&'a str, &'a str) {
     (k, v.as_ref().unwrap().as_str())
 }
 
