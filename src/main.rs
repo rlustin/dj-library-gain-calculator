@@ -50,17 +50,12 @@ fn main() {
         Some(input) => match deserialize_collection(input) {
             Ok(mut nml) => {
                 analysis::collection_analysis(&mut nml);
-                eprintln!("{:?}", nml);
 
-                let none = "[none]".to_string();
-
-                for entry in nml.collection.entries {
-                    let locked_entry = entry.lock();
-                    println!(
-                        "{} — {}",
-                        locked_entry.artist.as_ref().unwrap_or_else(|| &none),
-                        locked_entry.title.as_ref().unwrap_or_else(|| &none)
-                    );
+                match serialize_collection(nml, output_file) {
+                    Ok(_) => { },
+                    Err(e) => {
+                        exit_with_error(&e.to_string());
+                    }
                 }
             }
             Err(error) => exit_with_error(&error.to_string()),
