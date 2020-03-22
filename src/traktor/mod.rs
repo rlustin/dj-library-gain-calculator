@@ -228,10 +228,11 @@ mod tests {
         let input_path = "tests/vectors/1_element_collection.nml";
         let output_dir = TempDir::new("tests").unwrap();
         let output_path = output_dir.path().join("output.nml");
+        let output_stream = Box::new(File::create(output_path.clone()).unwrap());
 
         let collection = deserialize_collection(input_path).unwrap();
 
-        serialize_collection(collection, &output_path).unwrap();
+        serialize_collection(collection, output_stream).unwrap();
 
         let formatted_input_path = output_dir.path().join("formatted_input.nml");
         let formatted_output_path = output_dir.path().join("formatted_output.nml");
