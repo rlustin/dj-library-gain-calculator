@@ -1,6 +1,5 @@
 use crate::traktor::*;
 use clap::{load_yaml, App};
-use std::any::Any;
 use std::fs::File;
 use std::io::BufWriter;
 use std::io::Write;
@@ -24,7 +23,7 @@ fn main() {
         None => Ok(Box::new(BufWriter::new(std::io::stdout()))),
     };
 
-    let mut output_file = match maybe_output_file {
+    let output_file = match maybe_output_file {
         Ok(output_file) => output_file,
         Err(e) => {
             exit_with_error(&e.to_string());

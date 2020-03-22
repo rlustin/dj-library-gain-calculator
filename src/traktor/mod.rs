@@ -1,7 +1,6 @@
 use std::fs::File;
 use std::io::Cursor;
 use std::io::{BufReader, Write};
-use std::path::PathBuf;
 
 use quick_xml::de::from_reader;
 use quick_xml::events::{BytesDecl, BytesEnd, BytesStart, Event};
