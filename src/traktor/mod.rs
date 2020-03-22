@@ -21,7 +21,10 @@ pub fn deserialize_collection(path: &str) -> Result<Nml, AppError> {
     Ok(nml)
 }
 
-pub fn serialize_collection(collection: Nml, mut output_stream: Box<dyn Write>) -> Result<(), AppError> {
+pub fn serialize_collection(
+    collection: Nml,
+    mut output_stream: Box<dyn Write>,
+) -> Result<(), AppError> {
     let mut writer = Writer::new(Cursor::new(Vec::new()));
 
     let xml_declaration = BytesDecl::new(b"1.0", Some(b"UTF-8"), Some(b"no"));
