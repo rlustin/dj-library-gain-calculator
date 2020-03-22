@@ -162,6 +162,7 @@ version = "0.1.0"
 dependencies = [
  "assert_cmd 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "audrey 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cfg-if 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "claxon 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "ebur128 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",

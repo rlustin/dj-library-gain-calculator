@@ -8,6 +8,7 @@ edition = "2018"
 audrey = "0.2"
 clap = { version = "2.33.0", features = ["yaml"] }
 claxon = "0.4.2"
+cfg-if = "0.1"
 ebur128 = "0.1.0"
 hound = "3.4.0"
 minimp3 = "0.3"
