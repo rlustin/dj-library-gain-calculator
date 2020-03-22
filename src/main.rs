@@ -1,8 +1,11 @@
+use crate::error::AppError;
 use crate::traktor::*;
-use clap::{load_yaml, App};
-use std::fs::File;
-use std::io::BufWriter;
-use std::io::Write;
+use clap::{load_yaml, App, ArgMatches};
+use std::fs::{copy, File};
+use std::io::{BufWriter, Write};
+use std::path::PathBuf;
+use std::time::{SystemTime, UNIX_EPOCH};
+use tempdir::TempDir;
 
 mod analysis;
 mod error;
@@ -10,43 +13,69 @@ mod traktor;
 
 fn main() {
     let yaml = load_yaml!("cli.yml");
-    let matches = App::from(yaml).get_matches();
+    let app = App::from(yaml);
 
-    let maybe_output_file: Result<Box<dyn Write>, _> = match matches.value_of("output") {
+    match process(app) {
+        Ok(_) => {}
+        Err(error) => exit_with_error(&error.to_string()),
+    };
+}
+
+fn process(app: App) -> Result<(), AppError> {
+    let matches = app.get_matches();
+
+    let input_path = matches.value_of("input").ok_or("no input provided")?;
+    let temp_dir = TempDir::new("traktor")?;
+    let output_temp_path = temp_dir.path().join("collection.nml");
+    let output_stream = output_stream(&matches, &output_temp_path)?;
+
+    let mut nml = deserialize_collection(input_path)?;
+
+    analysis::collection_analysis(&mut nml);
+
+    serialize_collection(nml, output_stream)?;
+
+    if update_in_place(&matches) {
+        // Backup the collection.
+        let timestamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)?
+            .as_secs()
+            .to_string();
+        let backup_path = input_path.to_owned() + ".backup-" + &timestamp;
+        copy(input_path, backup_path)?;
+
+        // Replace the input collection.
+        copy(&output_temp_path, input_path)?;
+    } else if matches.value_of("output").is_some() {
+        let output_path = matches.value_of("output").ok_or("no output provided")?;
+
+        copy(&output_temp_path, output_path)?;
+    }
+
+    Ok(())
+}
+
+fn output_stream(
+    matches: &ArgMatches,
+    output_temp_path: &PathBuf,
+) -> Result<Box<dyn Write>, AppError> {
+    match matches.value_of("output") {
         Some(output_path) => match output_path {
             "-" => Ok(Box::new(BufWriter::new(std::io::stdout()))),
-            _ => match File::create(output_path) {
-                Ok(f) => Ok(Box::new(BufWriter::new(f))),
-                Err(e) => Err(e),
-            },
+            _ => Ok(Box::new(BufWriter::new(File::create(output_temp_path)?))),
         },
-        None => Ok(Box::new(BufWriter::new(std::io::stdout()))),
-    };
-
-    let output_file = match maybe_output_file {
-        Ok(output_file) => output_file,
-        Err(e) => {
-            exit_with_error(&e.to_string());
-            return;
-        }
-    };
-
-    match matches.value_of("input") {
-        Some(input) => match deserialize_collection(input) {
-            Ok(mut nml) => {
-                analysis::collection_analysis(&mut nml);
-
-                match serialize_collection(nml, output_file) {
-                    Ok(_) => {}
-                    Err(e) => {
-                        exit_with_error(&e.to_string());
-                    }
-                }
+        None => {
+            if update_in_place(&matches) {
+                Ok(Box::new(BufWriter::new(File::create(output_temp_path)?)))
+            } else {
+                Ok(Box::new(BufWriter::new(std::io::stdout())))
             }
-            Err(error) => exit_with_error(&error.to_string()),
-        },
-        None => exit_with_error("no collection input provided"),
+        }
     }
+}
+
+fn update_in_place(matches: &ArgMatches) -> bool {
+    matches.is_present("write")
 }
 
 fn exit_with_error(message: &str) {
