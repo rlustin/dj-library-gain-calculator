@@ -41,3 +41,15 @@ impl From<std::io::Error> for AppError {
         AppError::GenericError(error.to_string())
     }
 }
+
+impl From<std::time::SystemTimeError> for AppError {
+    fn from(error: std::time::SystemTimeError) -> AppError {
+        AppError::GenericError(error.to_string())
+    }
+}
+
+impl From<&str> for AppError {
+    fn from(error: &str) -> AppError {
+        AppError::GenericError(error.to_string())
+    }
+}
