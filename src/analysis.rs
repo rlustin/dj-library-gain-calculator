@@ -1,5 +1,6 @@
 use crate::traktor::models;
 use audrey;
+use cfg_if::cfg_if;
 use claxon;
 use ebur128::{EbuR128, Mode};
 use hound;
@@ -159,7 +160,19 @@ pub fn collection_analysis(collection: &mut models::Nml) {
         .par_iter_mut()
         .for_each(|entry_ref| {
             let mut entry = entry_ref.lock();
-            let mut path = entry.location.directory.clone();
+
+            cfg_if! {
+              if #[cfg(target_os = "macos")] {
+                let mut path = "/Volumes/".to_string();
+              } else if #[cfg(target_os = "windows")] {
+                let mut path = "".to_string();
+              } else {
+                let mut path = "/".to_string();
+              }
+            }
+
+            path.push_str(&entry.location.volume);
+            path.push_str(&entry.location.directory);
             path.retain(|c| c != ':');
             path.push_str(&entry.location.file);
             // open file and decode
