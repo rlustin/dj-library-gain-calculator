@@ -15,17 +15,3 @@ fn it_fails_when_file_does_not_exist() -> Result<(), Box<dyn std::error::Error>>
 
     Ok(())
 }
-
-#[test]
-fn it_parses_a_1_element_collection() -> Result<(), Box<dyn std::error::Error>> {
-    let mut command = Command::cargo_bin("dj-library-gain-calculator")?;
-
-    command.arg("tests/vectors/1_element_collection.nml");
-
-    command
-        .assert()
-        .success()
-        .stdout("Lock'N Load — Blow Ya Mind (Club Caviar Mix)\n");
-
-    Ok(())
-}
