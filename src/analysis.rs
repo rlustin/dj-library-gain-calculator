@@ -205,7 +205,7 @@ pub fn collection_analysis(collection: &mut models::Nml) {
             }
 
             entry.loudness.as_mut().unwrap().analyzed_db = ebu.loudness_global().unwrap();
-            entry.loudness.as_mut().unwrap().perceived_db = ebu.loudness_global().unwrap();
-            entry.loudness.as_mut().unwrap().peak_db = max_peak;
+            entry.loudness.as_mut().unwrap().perceived_db = -ebu.loudness_global().unwrap();
+            entry.loudness.as_mut().unwrap().peak_db = -max_peak;
         });
 }
