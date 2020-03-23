@@ -5,7 +5,8 @@ Analyses all tracks in a Traktor DJ library to have constant loudness.
 This application computes the loudness of each track of your Traktor DJ library,
 and normalize audio so each track of your DJ set are at roughly the same perceptual level.
 
-Normalization is performed using the [EBU R128 loudness standard](https://tech.ebu.ch/docs/r/r128.pdf) under the hood.
+Normalization is performed using the [TECH 3341 loudness metering](https://tech.ebu.ch/docs/tech/tech3341.pdf)
+under the hood.
 
 ## Usage
 
