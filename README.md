@@ -6,7 +6,7 @@ This application is able to calculate the loudness of each track of your Traktor
 library, to be able to normalize audio so each piece of your DJ set sounds roughly
 the same volume to the human ear.
 
-It uses the [EBU R128 loudness standard](https://tech.ebu.ch/docs/r/r128.pdf) under the wood.
+It uses the [EBU R128 loudness standard](https://tech.ebu.ch/docs/r/r128.pdf) under the hood.
 
 ## Usage
 
