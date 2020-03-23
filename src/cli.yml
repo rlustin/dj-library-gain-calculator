@@ -1,6 +1,6 @@
 name: dj-library-gain-calculator
 version: "0.1.0"
-about: Calculates gains in a Traktor DJ library to have a constant loudness.
+about: Analyses all tracks in a Traktor DJ library to have constant loudness.
 args:
     - input:
         help: The input Traktor library file to use.
