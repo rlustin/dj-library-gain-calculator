@@ -1,12 +1,11 @@
 # dj-library-gain-calculator
 
-Calculates gains in a Traktor DJ library to have a constant loudness.
+Analyses all tracks in a Traktor DJ library to have constant loudness.
 
-This application is able to calculate the loudness of each track of your Traktor DJ
-library, to be able to normalize audio so each piece of your DJ set sounds roughly
-the same volume to the human ear.
+This application computes the loudness of each track of your Traktor DJ library,
+and normalize audio so each track of your DJ set are at roughly the same perceptual level.
 
-It uses the [EBU R128 loudness standard](https://tech.ebu.ch/docs/r/r128.pdf) under the hood.
+Normalization is performed using the [EBU R128 loudness standard](https://tech.ebu.ch/docs/r/r128.pdf) under the hood.
 
 ## Usage
 
@@ -34,11 +33,10 @@ Example to update your Traktor library in place:
 dj-library-gain-calculator --input ~/Documents/Native\ Instruments/Traktor\ 3.3.0/collection.nml --write
 ```
 
-To benefit from this analysis, you should use the
+This analysis only works if
 [Autogain](https://support.native-instruments.com/hc/en-us/articles/209551129-How-to-Set-the-Channel-Gain-and-Autogain-in-TRAKTOR-PRO-2)
-feature of Traktor.
+is enabled in Traktor.
 
 ## Development
 
-You can use [cargo](https://doc.rust-lang.org/stable/cargo/) commands to build and run
-the application.
+Use [cargo](https://doc.rust-lang.org/stable/cargo/) commands to build and run the application.
