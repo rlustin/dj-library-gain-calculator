@@ -13,7 +13,7 @@ under the hood.
 ```bash
 dj-library-gain-calculator --help
 $ dj-library-gain-calculator 0.1.0
-Calculates gains in a Traktor DJ library to have a constant loudness.
+Analyses all tracks in a Traktor DJ library to have constant loudness.
 
 USAGE:
     dj-library-gain-calculator [FLAGS] [OPTIONS] --input <input>
