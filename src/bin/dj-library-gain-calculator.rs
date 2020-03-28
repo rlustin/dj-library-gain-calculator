@@ -8,9 +8,10 @@ use tempdir::TempDir;
 use dj_library_gain_calculator::analysis::*;
 use dj_library_gain_calculator::collection::*;
 use dj_library_gain_calculator::error::*;
+use dj_library_gain_calculator::utils::exit_with_error;
 
 fn main() {
-    let yaml = load_yaml!("cli.yml");
+    let yaml = load_yaml!("cli-collection.yml");
     let app = App::from(yaml);
 
     match process(app) {
@@ -74,13 +75,4 @@ fn output_stream(
 
 fn update_in_place(matches: &ArgMatches) -> bool {
     matches.is_present("write")
-}
-
-fn exit_with_error(message: &str) {
-    use std::process;
-
-    println!("{}", message);
-    println!("aborting…");
-
-    process::exit(1);
 }
