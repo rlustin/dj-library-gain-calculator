@@ -59,20 +59,20 @@ fn handle_hound(path: &str) -> Result<DecodedFile, String> {
                         16 => i16_in_i32_to_float,
                         24 => i24_to_float,
                         32 => i32_to_float,
-                        _ =>  {
-                            return Err(format!("Integer {} bits not supported",
-                                               reader.spec().bits_per_sample));
+                        _ => {
+                            return Err(format!(
+                                "Integer {} bits not supported",
+                                reader.spec().bits_per_sample
+                            ));
                         }
                     };
-                    reader.samples::<i32>()
-                          .map(Result::unwrap)
-                          .map(conversion_function).collect()
+                    reader
+                        .samples::<i32>()
+                        .map(Result::unwrap)
+                        .map(conversion_function)
+                        .collect()
                 }
-                hound::SampleFormat::Float => {
-                    reader.samples::<f32>()
-                          .map(Result::unwrap).collect()
-                }
-
+                hound::SampleFormat::Float => reader.samples::<f32>().map(Result::unwrap).collect(),
             };
             return Ok(DecodedFile {
                 channels: spec.channels.into(),
@@ -166,21 +166,21 @@ fn handle_minimp3(path: &str) -> Result<DecodedFile, String> {
 
 pub struct ComputedLoudness {
     pub integrated_loudness: f64,
-    pub true_peak: f64
+    pub true_peak: f64,
 }
 
-pub fn scan_loudness(path: &str) ->  Result<ComputedLoudness, String> {
+pub fn scan_loudness(path: &str) -> Result<ComputedLoudness, String> {
     let decode_result = match Path::new(path)
         .extension()
         .and_then(OsStr::to_str)
         .unwrap_or("??")
-        {
-            "ogg" => handle_audrey(&path),
-            "wav" => handle_hound(&path),
-            "flac" => handle_claxon(&path),
-            "mp3" => handle_minimp3(&path),
-            _ => Err("unknown file type".to_string()),
-        };
+    {
+        "ogg" => handle_audrey(&path),
+        "wav" => handle_hound(&path),
+        "flac" => handle_claxon(&path),
+        "mp3" => handle_minimp3(&path),
+        _ => Err("unknown file type".to_string()),
+    };
 
     return match decode_result {
         Ok(decoded) => {
@@ -199,11 +199,9 @@ pub fn scan_loudness(path: &str) ->  Result<ComputedLoudness, String> {
                 integrated_loudness: ebu.loudness_global().unwrap(),
                 true_peak: max_peak,
             })
-        },
-        Err(e) => {
-            Err(e)
         }
-    }
+        Err(e) => Err(e),
+    };
 }
 
 pub fn collection_analysis(collection: &mut models::Nml) {
