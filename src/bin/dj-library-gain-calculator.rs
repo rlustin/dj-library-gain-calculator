@@ -1,5 +1,3 @@
-use crate::error::AppError;
-use crate::traktor::*;
 use clap::{load_yaml, App, ArgMatches};
 use std::fs::{copy, File};
 use std::io::{BufWriter, Write};
@@ -7,9 +5,9 @@ use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tempdir::TempDir;
 
-mod analysis;
-mod error;
-mod traktor;
+use dj_library_gain_calculator::analysis::*;
+use dj_library_gain_calculator::collection::*;
+use dj_library_gain_calculator::error::*;
 
 fn main() {
     let yaml = load_yaml!("cli.yml");
@@ -31,7 +29,7 @@ fn process(app: App) -> Result<(), AppError> {
 
     let mut nml = deserialize_collection(input_path)?;
 
-    analysis::collection_analysis(&mut nml);
+    collection_analysis(&mut nml);
 
     serialize_collection(nml, output_stream)?;
 

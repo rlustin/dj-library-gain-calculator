@@ -1,4 +1,4 @@
-use crate::traktor::models;
+use crate::models;
 use audrey;
 use cfg_if::cfg_if;
 use claxon;
@@ -11,7 +11,7 @@ use std::ffi::OsStr;
 use std::fs::File;
 use std::path::Path;
 
-struct DecodedFile {
+pub struct DecodedFile {
     path: String,
     channels: u32,
     rate: u32,

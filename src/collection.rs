@@ -7,10 +7,7 @@ use quick_xml::events::{BytesDecl, BytesEnd, BytesStart, Event};
 use quick_xml::Writer;
 
 use crate::error::AppError;
-
-use self::models::Nml;
-
-pub mod models;
+use crate::models::Nml;
 
 pub fn deserialize_collection(path: &str) -> Result<Nml, AppError> {
     let file = File::open(path)?;
