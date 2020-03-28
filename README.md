@@ -11,8 +11,8 @@ under the hood.
 ## Usage
 
 ```bash
-dj-library-gain-calculator --help
-$ dj-library-gain-calculator 0.1.0
+$ dj-library-gain-calculator --help
+dj-library-gain-calculator 0.1.0
 Analyses all tracks in a Traktor DJ library to have constant loudness.
 
 USAGE:
@@ -26,6 +26,7 @@ FLAGS:
 OPTIONS:
     -i, --input <input>      The input Traktor library file to use.
     -o, --output <output>    The output Traktor library file to write or - for stdout.
+    -t, --target <target>    Target loudness in dB LUFS (negative value). [default: -14.0]
 ```
 
 Example to update your Traktor library in place:
