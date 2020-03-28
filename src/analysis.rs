@@ -1,17 +1,17 @@
 use crate::models;
+use crate::utils::*;
 use audrey;
 use cfg_if::cfg_if;
 use claxon;
 use ebur128::{EbuR128, Mode};
 use hound;
-use rmp3::{Decoder, Frame};
 use rayon::prelude::*;
+use rmp3::{Decoder, Frame};
 use std::convert::TryInto;
 use std::ffi::OsStr;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
-use crate::utils::*;
 
 pub struct DecodedFile {
     channels: u32,
@@ -78,9 +78,7 @@ fn handle_hound(path: &str) -> Result<DecodedFile, String> {
                 data,
             })
         }
-        Err(_) => {
-            Err("invalid wav".to_string())
-        }
+        Err(_) => Err("invalid wav".to_string()),
     }
 }
 
@@ -107,9 +105,7 @@ fn handle_claxon(path: &str) -> Result<DecodedFile, String> {
                 data,
             })
         }
-        Err(_) => {
-            Err("invalid flac".to_string())
-        }
+        Err(_) => Err("invalid flac".to_string()),
     }
 }
 
@@ -124,7 +120,13 @@ fn handle_minimp3(path: &str) -> Result<DecodedFile, String> {
             let mut rate: u32 = 0;
             let mut ch: u32 = 0;
             let mut pcm_data = Vec::<f32>::new();
-            while let Some(Frame { channels, sample_rate, samples, .. }) = decoder.next_frame() {
+            while let Some(Frame {
+                channels,
+                sample_rate,
+                samples,
+                ..
+            }) = decoder.next_frame()
+            {
                 if rate != sample_rate && rate != 0 {
                     return Err("inconsistent sample-rate".to_string());
                 } else {
@@ -142,7 +144,7 @@ fn handle_minimp3(path: &str) -> Result<DecodedFile, String> {
                 rate: rate as u32,
                 data: pcm_data,
             })
-        },
+        }
         _ => Err("file not found".to_string()),
     }
 }
@@ -165,24 +167,23 @@ pub fn scan_loudness(path: &str) -> Result<ComputedLoudness, String> {
         _ => Err("unknown file type".to_string()),
     };
 
-
     match decode_result {
         Ok(decoded) => {
-           let mut ebu =
+            let mut ebu =
                 EbuR128::new(decoded.channels, decoded.rate, Mode::I | Mode::TRUE_PEAK).unwrap();
-           ebu.add_frames_f32(&decoded.data).unwrap();
+            ebu.add_frames_f32(&decoded.data).unwrap();
 
-           // find max peak of all channels: the model has a single value for the peak
-           let mut max_peak = 0.0;
-           for i in 0..decoded.channels {
-               if max_peak < ebu.true_peak(i).unwrap() {
-                   max_peak = ebu.true_peak(i).unwrap();
-               }
-           }
-           Ok(ComputedLoudness {
-               integrated_loudness: ebu.loudness_global().unwrap() as f32,
-               true_peak: max_peak as f32,
-           })
+            // find max peak of all channels: the model has a single value for the peak
+            let mut max_peak = 0.0;
+            for i in 0..decoded.channels {
+                if max_peak < ebu.true_peak(i).unwrap() {
+                    max_peak = ebu.true_peak(i).unwrap();
+                }
+            }
+            Ok(ComputedLoudness {
+                integrated_loudness: ebu.loudness_global().unwrap() as f32,
+                true_peak: max_peak as f32,
+            })
         }
         Err(e) => Err(e),
     }
@@ -214,9 +215,12 @@ pub fn collection_analysis(collection: &mut models::Nml) {
 
             match scan_loudness(&path) {
                 Ok(loudness) => {
-                    entry.loudness.as_mut().unwrap().analyzed_db = loudness.integrated_loudness as f64;
-                    entry.loudness.as_mut().unwrap().perceived_db = loudness.integrated_loudness as f64;
-                    entry.loudness.as_mut().unwrap().peak_db = linear_to_db(loudness.true_peak) as f64;
+                    entry.loudness.as_mut().unwrap().analyzed_db =
+                        loudness.integrated_loudness as f64;
+                    entry.loudness.as_mut().unwrap().perceived_db =
+                        loudness.integrated_loudness as f64;
+                    entry.loudness.as_mut().unwrap().peak_db =
+                        linear_to_db(loudness.true_peak) as f64;
                 }
                 Err(e) => {
                     eprintln!("{}", e);

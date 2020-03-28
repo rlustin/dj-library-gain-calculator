@@ -26,7 +26,10 @@ fn process(app: App) -> Result<(), AppError> {
             Ok(loudness) => {
                 println!(
                     "{}\n\tIntegrated loudness: {:.2}dB LUFS\n\tTrue peak: {:.2} ({:.2}dB)",
-                    path, loudness.integrated_loudness, loudness.true_peak, linear_to_db(loudness.true_peak)
+                    path,
+                    loudness.integrated_loudness,
+                    loudness.true_peak,
+                    linear_to_db(loudness.true_peak)
                 );
             }
             Err(e) => {
