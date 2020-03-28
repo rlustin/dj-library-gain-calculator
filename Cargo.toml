@@ -11,7 +11,7 @@ claxon = "0.4.2"
 cfg-if = "0.1"
 ebur128 = "0.1.0"
 hound = "3.4.0"
-minimp3 = "0.3"
+rmp3 = { version = "0.2", features = ["float"] }
 parking_lot = { version = "0.10", features = ["serde"] }
 quick-xml = { version = "0.17", features = ["serialize"] }
 rayon = "1.3"
