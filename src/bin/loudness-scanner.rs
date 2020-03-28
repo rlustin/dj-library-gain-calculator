@@ -3,7 +3,7 @@ use rayon::prelude::*;
 
 use dj_library_gain_calculator::analysis::*;
 use dj_library_gain_calculator::error::*;
-use dj_library_gain_calculator::utils::exit_with_error;
+use dj_library_gain_calculator::utils::*;
 
 fn main() {
     let yaml = load_yaml!("cli-scanner.yml");
@@ -25,12 +25,12 @@ fn process(app: App) -> Result<(), AppError> {
         match scan_loudness(path) {
             Ok(loudness) => {
                 println!(
-                    "{}\n\tIntegrated loudness: {:.2}dB LUFS\n\tTrue peak: {:.2}dB",
-                    path, loudness.integrated_loudness, loudness.true_peak
+                    "{}\n\tIntegrated loudness: {:.2}dB LUFS\n\tTrue peak: {:.2} ({:.2}dB)",
+                    path, loudness.integrated_loudness, loudness.true_peak, linear_to_db(loudness.true_peak)
                 );
             }
             Err(e) => {
-                eprintln!("{}", e.to_string());
+                eprintln!("{}", e);
             }
         };
     });
