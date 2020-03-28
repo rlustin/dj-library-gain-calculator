@@ -13,6 +13,13 @@ args:
         short: o
         long: output
         takes_value: true
+    - target:
+        help: Target loudness in dB LUFS (negative value).
+        short: t
+        long: target
+        takes_value: true
+        allow_hyphen_values: true
+        default_value: "-14.0"
     - write:
         help: Updates the Traktor library in place.
         short: w

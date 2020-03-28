@@ -189,7 +189,7 @@ pub fn scan_loudness(path: &str) -> Result<ComputedLoudness, String> {
     }
 }
 
-pub fn collection_analysis(collection: &mut models::Nml) {
+pub fn collection_analysis(collection: &mut models::Nml, target_loudness: f32) {
     collection
         .collection
         .entries
@@ -215,12 +215,17 @@ pub fn collection_analysis(collection: &mut models::Nml) {
 
             match scan_loudness(&path) {
                 Ok(loudness) => {
-                    entry.loudness.as_mut().unwrap().analyzed_db =
-                        loudness.integrated_loudness as f64;
-                    entry.loudness.as_mut().unwrap().perceived_db =
-                        loudness.integrated_loudness as f64;
-                    entry.loudness.as_mut().unwrap().peak_db =
-                        linear_to_db(loudness.true_peak) as f64;
+                    let peak = linear_to_db(loudness.true_peak);
+                    let gain = loudness_to_gain(loudness.integrated_loudness, target_loudness);
+                    let peak_after_gain = peak + gain;
+
+                    if peak_after_gain > 0.0 {
+                        eprintln!("warning: {} clipping at {}", &path, peak_after_gain);
+                    }
+
+                    entry.loudness.as_mut().unwrap().analyzed_db = gain as f64;
+                    entry.loudness.as_mut().unwrap().perceived_db = gain as f64;
+                    entry.loudness.as_mut().unwrap().peak_db = peak as f64;
                 }
                 Err(e) => {
                     eprintln!("{}", e);

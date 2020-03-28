@@ -42,6 +42,12 @@ impl From<std::io::Error> for AppError {
     }
 }
 
+impl From<std::num::ParseFloatError> for AppError {
+    fn from(error: std::num::ParseFloatError) -> AppError {
+        AppError::GenericError(error.to_string())
+    }
+}
+
 impl From<std::time::SystemTimeError> for AppError {
     fn from(error: std::time::SystemTimeError) -> AppError {
         AppError::GenericError(error.to_string())

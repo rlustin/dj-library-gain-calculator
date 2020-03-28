@@ -24,13 +24,18 @@ fn process(app: App) -> Result<(), AppError> {
     let matches = app.get_matches();
 
     let input_path = matches.value_of("input").ok_or("no input provided")?;
+    let target_loudness: f32 = matches
+        .value_of("target")
+        .ok_or("no target loudness provided")?
+        .parse()?;
+
     let temp_dir = TempDir::new("traktor")?;
     let output_temp_path = temp_dir.path().join("collection.nml");
     let output_stream = output_stream(&matches, &output_temp_path)?;
 
     let mut nml = deserialize_collection(input_path)?;
 
-    collection_analysis(&mut nml);
+    collection_analysis(&mut nml, target_loudness);
 
     serialize_collection(nml, output_stream)?;
 
