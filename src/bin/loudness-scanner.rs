@@ -24,8 +24,11 @@ fn process(app: App) -> Result<(), AppError> {
     paths.par_iter().for_each(|path| {
         match scan_loudness(path) {
             Ok(loudness) => {
-                println!("{}\n\tIntegrated loudness: {:.2}dB LUFS\n\tTrue peak: {:.2}dB", path, loudness.integrated_loudness, loudness.true_peak);
-            },
+                println!(
+                    "{}\n\tIntegrated loudness: {:.2}dB LUFS\n\tTrue peak: {:.2}dB",
+                    path, loudness.integrated_loudness, loudness.true_peak
+                );
+            }
             Err(e) => {
                 eprintln!("{}", e.to_string());
             }
