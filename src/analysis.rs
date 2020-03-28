@@ -24,7 +24,7 @@ fn i16_in_i32_to_float(integer: i32) -> f32 {
 }
 
 fn i24_to_float(integer: i32) -> f32 {
-    // inputis i32, but the most significant byte is all 0s
+    // input is i32, but the most significant byte is all 0s
     (integer as f32) / (2_u32.pow(23) as f32)
 }
 
