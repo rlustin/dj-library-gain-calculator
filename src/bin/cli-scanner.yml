@@ -1,0 +1,9 @@
+name: loudness-scanner
+version: "0.1.0"
+about: Analyse a track or set of tracks and output loudness and peak info
+args:
+    - input:
+        help: One or more files to analyse
+        required: true
+        multiple: true
+        index: 1
