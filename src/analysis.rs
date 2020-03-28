@@ -4,12 +4,14 @@ use cfg_if::cfg_if;
 use claxon;
 use ebur128::{EbuR128, Mode};
 use hound;
-use minimp3::{Decoder, Error, Frame};
+use rmp3::{Decoder, Frame};
 use rayon::prelude::*;
 use std::convert::TryInto;
 use std::ffi::OsStr;
 use std::fs::File;
+use std::io::prelude::*;
 use std::path::Path;
+use crate::utils::*;
 
 pub struct DecodedFile {
     channels: u32,
@@ -17,21 +19,17 @@ pub struct DecodedFile {
     data: Vec<f32>, // interleaved
 }
 
-fn i16_to_float(integer: i16) -> f32 {
-    (integer as f32) / (2_u32.pow(14) as f32)
-}
-
 fn i16_in_i32_to_float(integer: i32) -> f32 {
     (integer as f32) / (2_u32.pow(14) as f32)
 }
 
 fn i24_to_float(integer: i32) -> f32 {
-    // most significant byte is 0
-    (integer as f32) / (2_u32.pow(22) as f32)
+    // inputis i32, but the most significant byte is all 0s
+    (integer as f32) / (2_u32.pow(23) as f32)
 }
 
 fn i32_to_float(integer: i32) -> f32 {
-    (integer as f32) / (2_u32.pow(30) as f32)
+    (integer as f32) / (2_u32.pow(31) as f32)
 }
 
 fn handle_audrey(path: &str) -> Result<DecodedFile, String> {
@@ -74,14 +72,14 @@ fn handle_hound(path: &str) -> Result<DecodedFile, String> {
                 }
                 hound::SampleFormat::Float => reader.samples::<f32>().map(Result::unwrap).collect(),
             };
-            return Ok(DecodedFile {
+            Ok(DecodedFile {
                 channels: spec.channels.into(),
                 rate: spec.sample_rate,
                 data,
-            });
+            })
         }
         Err(_) => {
-            return Err("invalid wav".to_string());
+            Err("invalid wav".to_string())
         }
     }
 }
@@ -103,70 +101,55 @@ fn handle_claxon(path: &str) -> Result<DecodedFile, String> {
                 .map(conversion_function)
                 .collect::<Vec<f32>>();
             let spec = reader.streaminfo();
-            return Ok(DecodedFile {
+            Ok(DecodedFile {
                 channels: spec.channels,
                 rate: spec.sample_rate,
                 data,
-            });
+            })
         }
         Err(_) => {
-            return Err("invalid flac".to_string());
+            Err("invalid flac".to_string())
         }
     }
 }
 
 fn handle_minimp3(path: &str) -> Result<DecodedFile, String> {
     match File::open(path) {
-        Ok(f) => {
-            let mut decoder = Decoder::new(f);
-            let mut pcm_data = Vec::<f32>::new();
-            let mut rate: i32 = 0;
+        Ok(mut f) => {
+            let mut buffer = Vec::new();
+            // read the whole file
+            f.read_to_end(&mut buffer).unwrap();
+
+            let mut decoder = Decoder::new(&buffer);
+            let mut rate: u32 = 0;
             let mut ch: u32 = 0;
-            let rv = loop {
-                match decoder.next_frame() {
-                    Ok(Frame {
-                        data,
-                        sample_rate,
-                        channels,
-                        ..
-                    }) => {
-                        if rate != sample_rate && rate != 0 {
-                            break Err("inconsistent sample-rate".to_string());
-                        } else {
-                            rate = sample_rate;
-                        }
-                        if ch != channels.try_into().unwrap() && ch != 0 {
-                            break Err("inconsistent channel count".to_string());
-                        } else {
-                            ch = channels.try_into().unwrap();
-                        }
-                        // i16 -> f32
-                        data.iter().for_each(|s| {
-                            pcm_data.push(i16_to_float(*s));
-                        });
-                    }
-                    Err(Error::Eof) => break Ok(pcm_data),
-                    Err(_) => {
-                        break Err("mp3 corrupted".to_string());
-                    }
+            let mut pcm_data = Vec::<f32>::new();
+            while let Some(Frame { channels, sample_rate, samples, .. }) = decoder.next_frame() {
+                if rate != sample_rate && rate != 0 {
+                    return Err("inconsistent sample-rate".to_string());
+                } else {
+                    rate = sample_rate;
                 }
-            };
-            match rv {
-                Ok(data) => Ok(DecodedFile {
-                    channels: ch,
-                    rate: rate as u32,
-                    data,
-                }),
-                Err(e) => Err(e),
+                if ch != channels.try_into().unwrap() && ch != 0 {
+                    return Err("inconsistent channel count".to_string());
+                } else {
+                    ch = channels.try_into().unwrap();
+                }
+                pcm_data.extend(samples);
             }
-        }
+            Ok(DecodedFile {
+                channels: ch,
+                rate: rate as u32,
+                data: pcm_data,
+            })
+        },
         _ => Err("file not found".to_string()),
     }
 }
 
 pub struct ComputedLoudness {
-    pub integrated_loudness: f64,
-    pub true_peak: f64,
+    pub integrated_loudness: f32,
+    pub true_peak: f32,
 }
 
 pub fn scan_loudness(path: &str) -> Result<ComputedLoudness, String> {
@@ -182,26 +165,27 @@ pub fn scan_loudness(path: &str) -> Result<ComputedLoudness, String> {
         _ => Err("unknown file type".to_string()),
     };
 
-    return match decode_result {
-        Ok(decoded) => {
-            let mut ebu =
-                EbuR128::new(decoded.channels, decoded.rate, Mode::I | Mode::TRUE_PEAK).unwrap();
-            ebu.add_frames_f32(&decoded.data).unwrap();
 
-            // find max peak of all channels: the model has a single value for the peak
-            let mut max_peak = 0.0;
-            for i in 0..decoded.channels {
-                if max_peak < ebu.true_peak(i).unwrap() {
-                    max_peak = ebu.true_peak(i).unwrap();
-                }
-            }
-            Ok(ComputedLoudness {
-                integrated_loudness: ebu.loudness_global().unwrap(),
-                true_peak: max_peak,
-            })
+    match decode_result {
+        Ok(decoded) => {
+           let mut ebu =
+                EbuR128::new(decoded.channels, decoded.rate, Mode::I | Mode::TRUE_PEAK).unwrap();
+           ebu.add_frames_f32(&decoded.data).unwrap();
+
+           // find max peak of all channels: the model has a single value for the peak
+           let mut max_peak = 0.0;
+           for i in 0..decoded.channels {
+               if max_peak < ebu.true_peak(i).unwrap() {
+                   max_peak = ebu.true_peak(i).unwrap();
+               }
+           }
+           Ok(ComputedLoudness {
+               integrated_loudness: ebu.loudness_global().unwrap() as f32,
+               true_peak: max_peak as f32,
+           })
         }
         Err(e) => Err(e),
-    };
+    }
 }
 
 pub fn collection_analysis(collection: &mut models::Nml) {
@@ -230,12 +214,12 @@ pub fn collection_analysis(collection: &mut models::Nml) {
 
             match scan_loudness(&path) {
                 Ok(loudness) => {
-                    entry.loudness.as_mut().unwrap().analyzed_db = loudness.integrated_loudness;
-                    entry.loudness.as_mut().unwrap().perceived_db = -loudness.integrated_loudness;
-                    entry.loudness.as_mut().unwrap().peak_db = -loudness.true_peak;
+                    entry.loudness.as_mut().unwrap().analyzed_db = loudness.integrated_loudness as f64;
+                    entry.loudness.as_mut().unwrap().perceived_db = loudness.integrated_loudness as f64;
+                    entry.loudness.as_mut().unwrap().peak_db = linear_to_db(loudness.true_peak) as f64;
                 }
                 Err(e) => {
-                    eprintln!("{}", e.to_string());
+                    eprintln!("{}", e);
                 }
             }
         });
