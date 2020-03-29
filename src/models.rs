@@ -43,7 +43,7 @@ pub struct Entry {
     #[serde(rename = "MUSICAL_KEY")]
     pub musical_key: Option<MusicalKey>,
     #[serde(rename = "TEMPO")]
-    pub tempo: Tempo,
+    pub tempo: Option<Tempo>,
     #[serde(rename = "TITLE")]
     pub title: Option<String>,
 }
