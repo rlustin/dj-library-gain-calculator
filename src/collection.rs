@@ -217,13 +217,16 @@ fn serialize_collection(
         writer.write_event(Event::Start(info_start_tag))?;
         writer.write_event(Event::End(BytesEnd::borrowed(b"INFO")))?;
 
-        let mut tempo_start_tag = BytesStart::owned("TEMPO", "TEMPO".len());
-        if entry.tempo.bpm.is_some() {
-            tempo_start_tag.push_attribute(("BPM", entry.tempo.bpm.as_ref().unwrap().as_str()));
+        if entry.tempo.is_some() {
+            let tempo = entry.tempo.as_ref().unwrap();
+            let mut tempo_start_tag = BytesStart::owned("TEMPO", "TEMPO".len());
+            if tempo.bpm.is_some() {
+                tempo_start_tag.push_attribute(("BPM", tempo.bpm.as_ref().unwrap().as_str()));
+            }
+            tempo_start_tag.push_attribute(("BPM_QUALITY", tempo.bpm_quality.as_str()));
+            writer.write_event(Event::Start(tempo_start_tag))?;
+            writer.write_event(Event::End(BytesEnd::borrowed(b"TEMPO")))?;
         }
-        tempo_start_tag.push_attribute(("BPM_QUALITY", entry.tempo.bpm_quality.as_str()));
-        writer.write_event(Event::Start(tempo_start_tag))?;
-        writer.write_event(Event::End(BytesEnd::borrowed(b"TEMPO")))?;
 
         if entry.loudness.is_some() {
             let loudness = entry.loudness.as_ref().unwrap();
