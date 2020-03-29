@@ -7,7 +7,10 @@ use tempdir::TempDir;
 fn it_fails_when_file_does_not_exist() -> Result<(), Box<dyn std::error::Error>> {
     let mut command = Command::cargo_bin("dj-library-gain-calculator")?;
 
-    command.arg("--input").arg("tests/vectors/not_found.nml");
+    command
+        .arg("collection")
+        .arg("--input")
+        .arg("tests/vectors/not_found.nml");
 
     command
         .assert()
@@ -27,6 +30,7 @@ fn it_processes_a_1_element_collection_to_stdout() -> Result<(), Box<dyn std::er
     input_content.truncate(input_content.len() - 1);
 
     command
+        .arg("collection")
         .arg("--input")
         .arg(input_path)
         .assert()
@@ -45,6 +49,7 @@ fn it_processes_a_1_element_collection_to_a_file() -> Result<(), Box<dyn std::er
     let output_path = output_dir.path().join("output.nml");
 
     command
+        .arg("collection")
         .arg("--input")
         .arg(input_path)
         .arg("--output")

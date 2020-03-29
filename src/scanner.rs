@@ -1,23 +1,11 @@
-use clap::{load_yaml, App};
+use clap::ArgMatches;
 use rayon::prelude::*;
 
-use dj_library_gain_calculator::analysis::*;
-use dj_library_gain_calculator::error::*;
-use dj_library_gain_calculator::utils::*;
+use crate::analysis::scan_loudness;
+use crate::error::AppError;
+use crate::utils::linear_to_db;
 
-fn main() {
-    let yaml = load_yaml!("cli-scanner.yml");
-    let app = App::from(yaml);
-
-    match process(app) {
-        Ok(_) => {}
-        Err(error) => exit_with_error(&error.to_string()),
-    };
-}
-
-fn process(app: App) -> Result<(), AppError> {
-    let matches = app.get_matches();
-
+pub fn run(matches: &ArgMatches) -> Result<(), AppError> {
     let input_paths = matches.values_of("input").ok_or("no input provided")?;
     let paths: Vec<&str> = input_paths.collect();
 
