@@ -1,0 +1,42 @@
+name: dj-library-gain-calculator
+version: "0.1.0"
+about: Analyses all tracks in a Traktor DJ collection to have constant loudness.
+subcommands:
+    - collection:
+        about: Analyses all tracks in a Traktor DJ collection to have constant loudness.
+        args:
+          - input:
+              help: The input Traktor collection file to use.
+              short: i
+              long: input
+              takes_value: true
+              required: true
+          - output:
+              help: The output Traktor collection file to write or - for stdout.
+              short: o
+              long: output
+              takes_value: true
+          - target:
+              help: Target loudness in dB LUFS (negative value).
+              short: t
+              long: target
+              takes_value: true
+              allow_hyphen_values: true
+              default_value: "-14.0"
+          - write:
+              help: Updates the Traktor collection in place.
+              short: w
+              long: write
+              global: true
+              conflicts_with:
+                - output
+    - scanner:
+        about: Analyses a track or set of tracks and output loudness and peak info.
+        args:
+            - input:
+                help: One or more files to analyse.
+                required: true
+                multiple: true
+                index: 1
+
+

@@ -1,15 +1,78 @@
-use std::fs::File;
-use std::io::Cursor;
-use std::io::{BufReader, Write};
-
+use crate::analysis::collection_analysis;
+use crate::error::AppError;
+use crate::models::Nml;
+use clap::ArgMatches;
 use quick_xml::de::from_reader;
 use quick_xml::events::{BytesDecl, BytesEnd, BytesStart, Event};
 use quick_xml::Writer;
+use std::fs::{copy, File};
+use std::io::Cursor;
+use std::io::{BufReader, BufWriter, Write};
+use std::path::PathBuf;
+use std::time::{SystemTime, UNIX_EPOCH};
+use tempdir::TempDir;
 
-use crate::error::AppError;
-use crate::models::Nml;
+pub fn run(matches: &ArgMatches) -> Result<(), AppError> {
+    let input_path = matches.value_of("input").ok_or("no input provided")?;
+    let target_loudness: f32 = matches
+        .value_of("target")
+        .ok_or("no target loudness provided")?
+        .parse()?;
 
-pub fn deserialize_collection(path: &str) -> Result<Nml, AppError> {
+    let temp_dir = TempDir::new("traktor")?;
+    let output_temp_path = temp_dir.path().join("collection.nml");
+    let output_stream = output_stream(&matches, &output_temp_path)?;
+
+    let mut nml = deserialize_collection(input_path)?;
+
+    collection_analysis(&mut nml, target_loudness);
+
+    serialize_collection(nml, output_stream)?;
+
+    if update_in_place(&matches) {
+        // Backup the collection.
+        let timestamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)?
+            .as_secs()
+            .to_string();
+        let backup_path = input_path.to_owned() + ".backup-" + &timestamp;
+        copy(input_path, backup_path)?;
+
+        // Replace the input collection.
+        copy(&output_temp_path, input_path)?;
+    } else if matches.value_of("output").is_some() {
+        let output_path = matches.value_of("output").ok_or("no output provided")?;
+
+        copy(&output_temp_path, output_path)?;
+    }
+
+    Ok(())
+}
+
+fn output_stream(
+    matches: &ArgMatches,
+    output_temp_path: &PathBuf,
+) -> Result<Box<dyn Write>, AppError> {
+    match matches.value_of("output") {
+        Some(output_path) => match output_path {
+            "-" => Ok(Box::new(BufWriter::new(std::io::stdout()))),
+            _ => Ok(Box::new(BufWriter::new(File::create(output_temp_path)?))),
+        },
+        None => {
+            if update_in_place(&matches) {
+                Ok(Box::new(BufWriter::new(File::create(output_temp_path)?)))
+            } else {
+                Ok(Box::new(BufWriter::new(std::io::stdout())))
+            }
+        }
+    }
+}
+
+fn update_in_place(matches: &ArgMatches) -> bool {
+    matches.is_present("write")
+}
+
+fn deserialize_collection(path: &str) -> Result<Nml, AppError> {
     let file = File::open(path)?;
     let buf_reader = BufReader::new(file);
     let nml: Nml = from_reader(buf_reader)?;
@@ -21,7 +84,7 @@ fn kv_to_tuple<'a>(k: &'a str, v: &'a Option<String>) -> (&'a str, &'a str) {
     (k, v.as_ref().unwrap().as_str())
 }
 
-pub fn serialize_collection(
+fn serialize_collection(
     collection: Nml,
     mut output_stream: Box<dyn Write>,
 ) -> Result<(), AppError> {
