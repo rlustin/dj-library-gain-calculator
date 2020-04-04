@@ -145,8 +145,88 @@ pub struct Nml {
     pub head: Head,
     #[serde(rename = "COLLECTION")]
     pub collection: Collection,
+    #[serde(rename = "PLAYLISTS")]
+    pub playlists: Option<Playlists>,
+    #[serde(rename = "SETS")]
+    pub sets: Option<Sets>,
+    #[serde(rename = "SORTING_ORDER")]
+    pub sorting_order: Option<SortingOrder>,
     #[serde(rename = "VERSION")]
     pub version: i64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Node {
+    #[serde(rename = "NAME")]
+    pub name: String,
+    #[serde(rename = "TYPE")]
+    pub node_type: String,
+    #[serde(rename = "PLAYLIST")]
+    pub playlist: Option<Playlist>,
+    #[serde(rename = "SUBNODES")]
+    pub subnodes: Option<SubNodes>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Playlist {
+    #[serde(rename = "ENTRY")]
+    pub entries: Option<Vec<PlayListEntry>>,
+    #[serde(rename = "ENTRIES")]
+    pub entries_count: i64,
+    #[serde(rename = "TYPE")]
+    pub playlist_type: String,
+    #[serde(rename = "UUID")]
+    pub uuid: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PlayListEntry {
+    #[serde(rename = "PRIMARYKEY")]
+    pub primary_key: PrimaryKey,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Playlists {
+    #[serde(rename = "NODE")]
+    pub nodes: Vec<Node>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PrimaryKey {
+    #[serde(rename = "TYPE")]
+    pub primary_key_type: String,
+    #[serde(rename = "KEY")]
+    pub key: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Sets {
+    #[serde(rename = "ENTRIES")]
+    pub entries: i64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SortingData {
+    #[serde(rename = "IDX")]
+    pub idx: String,
+    #[serde(rename = "ORD")]
+    pub ord: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SortingOrder {
+    #[serde(rename = "PATH")]
+    pub path: String,
+    #[serde(rename = "SORTING_DATA")]
+    pub sorting_data: SortingData,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SubNodes {
+    #[serde(rename = "COUNT")]
+    pub count: i64,
+    #[serde(rename = "NODE")]
+    pub nodes: Vec<Node>,
 }
 
 #[derive(Debug, Deserialize)]
