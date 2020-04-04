@@ -37,9 +37,9 @@ pub struct Entry {
     #[serde(rename = "MODIFICATION_INFO")]
     pub modification_info: ModificationInfo,
     #[serde(rename = "MODIFIED_DATE")]
-    pub modified_date: String,
+    pub modified_date: Option<String>,
     #[serde(rename = "MODIFIED_TIME")]
-    pub modified_time: i64,
+    pub modified_time: Option<i64>,
     #[serde(rename = "MUSICAL_KEY")]
     pub musical_key: Option<MusicalKey>,
     #[serde(rename = "TEMPO")]
@@ -63,9 +63,9 @@ pub struct Info {
     #[serde(rename = "COVERARTID")]
     pub cover_art_id: Option<String>,
     #[serde(rename = "FILESIZE")]
-    pub file_size: i64,
+    pub file_size: Option<i64>,
     #[serde(rename = "FLAGS")]
-    pub flags: i64,
+    pub flags: Option<i64>,
     #[serde(rename = "GENRE")]
     pub genre: Option<String>,
     #[serde(rename = "IMPORT_DATE")]
