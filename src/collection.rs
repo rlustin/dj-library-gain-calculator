@@ -120,8 +120,18 @@ fn serialize_collection(
         let entry = entry_ref.lock();
 
         let mut entry_start_tag = BytesStart::owned("ENTRY", "ENTRY".len());
-        entry_start_tag.push_attribute(("MODIFIED_DATE", entry.modified_date.as_str()));
-        entry_start_tag.push_attribute(("MODIFIED_TIME", entry.modified_time.to_string().as_str()));
+        if entry.modified_date.is_some() {
+            entry_start_tag.push_attribute((
+                "MODIFIED_DATE",
+                entry.modified_date.as_ref().unwrap().as_str(),
+            ));
+        }
+        if entry.modified_time.is_some() {
+            entry_start_tag.push_attribute((
+                "MODIFIED_TIME",
+                entry.modified_time.as_ref().unwrap().to_string().as_str(),
+            ));
+        }
         if entry.audio_id.is_some() {
             entry_start_tag.push_attribute(kv_to_tuple("AUDIO_ID", &entry.audio_id));
         }
@@ -212,8 +222,18 @@ fn serialize_collection(
         if entry.info.release_date.is_some() {
             info_start_tag.push_attribute(kv_to_tuple("RELEASE_DATE", &entry.info.release_date));
         }
-        info_start_tag.push_attribute(("FLAGS", entry.info.flags.to_string().as_str()));
-        info_start_tag.push_attribute(("FILESIZE", entry.info.file_size.to_string().as_str()));
+        if entry.info.flags.is_some() {
+            info_start_tag.push_attribute((
+                "FLAGS",
+                entry.info.flags.as_ref().unwrap().to_string().as_str(),
+            ));
+        }
+        if entry.info.file_size.is_some() {
+            info_start_tag.push_attribute((
+                "FILESIZE",
+                entry.info.file_size.as_ref().unwrap().to_string().as_str(),
+            ));
+        }
         writer.write_event(Event::Start(info_start_tag))?;
         writer.write_event(Event::End(BytesEnd::borrowed(b"INFO")))?;
 
