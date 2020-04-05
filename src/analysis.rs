@@ -149,6 +149,7 @@ fn handle_minimp3(path: &str) -> Result<DecodedFile, String> {
     }
 }
 
+#[derive(Debug)]
 pub struct ComputedLoudness {
     pub integrated_loudness: f32,
     pub true_peak: f32,
