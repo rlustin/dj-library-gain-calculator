@@ -20,7 +20,7 @@ pub struct DecodedFile {
 }
 
 fn i16_in_i32_to_float(integer: i32) -> f32 {
-    (integer as f32) / (2_u32.pow(14) as f32)
+    (integer as f32) / (2_u32.pow(15) as f32)
 }
 
 fn i24_to_float(integer: i32) -> f32 {
