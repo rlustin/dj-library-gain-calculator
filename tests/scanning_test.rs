@@ -1,12 +1,10 @@
+use dj_library_gain_calculator::analysis::scan_loudness;
 use std::assert;
 use walkdir::WalkDir;
-use dj_library_gain_calculator::analysis::scan_loudness;
 
 #[test]
 fn loudness_measurement_smoketest() -> Result<(), Box<dyn std::error::Error>> {
-        for entry in WalkDir::new(".")
-            .into_iter()
-            .filter_map(|e| e.ok()) {
+    for entry in WalkDir::new(".").into_iter().filter_map(|e| e.ok()) {
         let path = entry.path().to_string_lossy();
         let name = entry.file_name().to_string_lossy();
 
