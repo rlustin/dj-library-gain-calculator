@@ -150,7 +150,7 @@ pub struct Nml {
     #[serde(rename = "SETS")]
     pub sets: Option<Sets>,
     #[serde(rename = "SORTING_ORDER")]
-    pub sorting_order: Option<SortingOrder>,
+    pub sorting_orders: Option<Vec<SortingOrder>>,
     #[serde(rename = "VERSION")]
     pub version: i64,
 }

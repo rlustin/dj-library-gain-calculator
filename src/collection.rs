@@ -316,19 +316,20 @@ fn serialize_collection(
         writer.write_event(Event::End(BytesEnd::borrowed(b"PLAYLISTS")))?;
     }
 
-    if collection.sorting_order.is_some() {
-        let sorting_order = collection.sorting_order.as_ref().unwrap();
-        let mut sorting_order_tag = BytesStart::owned("SORTING_ORDER", "SORTING_ORDER".len());
-        sorting_order_tag.push_attribute(("PATH", sorting_order.path.as_str()));
-        writer.write_event(Event::Start(sorting_order_tag))?;
+    if collection.sorting_orders.is_some() {
+        for sorting_order in collection.sorting_orders.as_ref().unwrap() {
+            let mut sorting_order_tag = BytesStart::owned("SORTING_ORDER", "SORTING_ORDER".len());
+            sorting_order_tag.push_attribute(("PATH", sorting_order.path.as_str()));
+            writer.write_event(Event::Start(sorting_order_tag))?;
 
-        let mut sorting_data_tag = BytesStart::owned("SORTING_DATA", "SORTING_DATA".len());
-        sorting_data_tag.push_attribute(("IDX", sorting_order.sorting_data.idx.as_ref()));
-        sorting_data_tag.push_attribute(("ORD", sorting_order.sorting_data.ord.as_ref()));
-        writer.write_event(Event::Start(sorting_data_tag))?;
-        writer.write_event(Event::End(BytesEnd::borrowed(b"SORTING_DATA")))?;
+            let mut sorting_data_tag = BytesStart::owned("SORTING_DATA", "SORTING_DATA".len());
+            sorting_data_tag.push_attribute(("IDX", sorting_order.sorting_data.idx.as_ref()));
+            sorting_data_tag.push_attribute(("ORD", sorting_order.sorting_data.ord.as_ref()));
+            writer.write_event(Event::Start(sorting_data_tag))?;
+            writer.write_event(Event::End(BytesEnd::borrowed(b"SORTING_DATA")))?;
 
-        writer.write_event(Event::End(BytesEnd::borrowed(b"SORTING_ORDER")))?;
+            writer.write_event(Event::End(BytesEnd::borrowed(b"SORTING_ORDER")))?;
+        }
     }
 
     writer.write_event(Event::End(BytesEnd::borrowed(b"NML")))?;
@@ -403,54 +404,20 @@ mod tests {
 
     #[test]
     fn serialization_roundtrip_on_a_1_element_collection() {
-        let input_path = "tests/vectors/1_element_collection.nml";
-        let output_dir = TempDir::new("tests").unwrap();
-        let output_path = output_dir.path().join("output.nml");
-        let output_stream = Box::new(File::create(output_path.clone()).unwrap());
-
-        let collection = deserialize_collection(input_path).unwrap();
-
-        serialize_collection(collection, output_stream).unwrap();
-
-        let formatted_input_path = output_dir.path().join("formatted_input.nml");
-        let formatted_output_path = output_dir.path().join("formatted_output.nml");
-
-        let formatted_input_file = File::create(&formatted_input_path).unwrap();
-        let formatted_output_file = File::create(&formatted_output_path).unwrap();
-
-        Command::new("xmllint")
-            .arg("--format")
-            .arg(input_path)
-            .stdout(Stdio::from(formatted_input_file))
-            .output()
-            .expect("lint");
-
-        Command::new("xmllint")
-            .arg("--format")
-            .arg(&output_path)
-            .stdout(Stdio::from(formatted_output_file))
-            .output()
-            .expect("lint");
-
-        let output = Command::new("diff")
-            .arg("-U8")
-            .arg(&formatted_input_path.as_os_str().to_str().unwrap())
-            .arg(&formatted_output_path.as_os_str().to_str().unwrap())
-            .output()
-            .expect("diff");
-
-        let stdout = from_utf8(output.stdout.as_ref()).unwrap();
-
-        if output.status.code() != Some(0) {
-            println!("{}", stdout);
-        }
-
-        assert_eq!(output.status.code().unwrap(), 0)
+        serialization_roundtrip_test("tests/vectors/1_element_collection.nml");
     }
 
     #[test]
     fn serialization_roundtrip_on_a_large_collection_with_1_playlist() {
-        let input_path = "tests/vectors/collection_with_1_playlist.nml";
+        serialization_roundtrip_test("tests/vectors/collection_with_1_playlist.nml");
+    }
+
+    #[test]
+    fn serialization_roundtrip_on_a_collection_with_2_sorting_orders() {
+        serialization_roundtrip_test("tests/vectors/collection_with_2_sorting_orders.nml");
+    }
+
+    fn serialization_roundtrip_test(input_path: &str) {
         let output_dir = TempDir::new("tests").unwrap();
         let output_path = output_dir.path().join("output.nml");
         let output_stream = Box::new(File::create(output_path.clone()).unwrap());
