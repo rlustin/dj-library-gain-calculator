@@ -190,7 +190,10 @@ pub fn scan_loudness(path: &str) -> Result<ComputedLoudness, String> {
     }
 }
 
-pub fn collection_analysis(collection: &mut models::Nml, target_loudness: f32) {
+pub fn collection_analysis<T>(collection: &mut models::Nml, target_loudness: f32, progress_callback: T)
+where
+    T: Fn(String) + Send + 'static + std::marker::Sync,
+{
     collection
         .collection
         .entries
@@ -235,6 +238,7 @@ pub fn collection_analysis(collection: &mut models::Nml, target_loudness: f32) {
                             peak_db: peak as f64,
                         })
                     }
+                    progress_callback(entry.location.file.clone());
                 }
                 Err(e) => {
                     eprintln!("{}", e);

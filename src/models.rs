@@ -155,6 +155,12 @@ pub struct Nml {
     pub version: i64,
 }
 
+impl Nml {
+    pub fn track_count(&self) -> u64 {
+        self.collection.entries.len() as u64
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct Node {
     #[serde(rename = "NAME")]
