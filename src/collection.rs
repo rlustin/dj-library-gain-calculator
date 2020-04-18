@@ -4,6 +4,7 @@ use crate::models::Nml;
 use crate::models::Node;
 use clap::ArgMatches;
 use indicatif::{ProgressBar, ProgressStyle};
+use log::trace;
 use parking_lot::Mutex;
 use quick_xml::de::from_reader;
 use quick_xml::events::{BytesDecl, BytesEnd, BytesStart, Event};
@@ -40,6 +41,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), AppError> {
 
     let progress_callback = move |name: String| {
         let pb = Arc::clone(&progress_bar_threadsafe);
+        trace!("{} finished", name);
         pb.lock().inc(1);
         pb.lock().set_message(&name);
     };
