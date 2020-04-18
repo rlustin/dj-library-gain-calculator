@@ -1,4 +1,5 @@
 pub mod analysis;
+mod cache;
 mod collection;
 mod error;
 mod models;
@@ -9,8 +10,7 @@ use crate::utils::exit_with_error;
 use clap::{load_yaml, App};
 
 pub fn cli() {
-    let mut builder = pretty_env_logger::formatted_builder();
-    builder.filter(None, log::LevelFilter::Error).init();
+    pretty_env_logger::init();
 
     let yaml = load_yaml!("cli.yml");
     let app = App::from(yaml);

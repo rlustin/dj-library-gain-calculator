@@ -30,6 +30,24 @@ subcommands:
               global: true
               conflicts_with:
                 - output
+          - no-cache-read:
+              help: Don't read from cache
+              long: no-cache-read
+              global: true
+          - no-cache-write:
+              help: Don't write to cache
+              long: no-cache-write
+              global: true
+          - purge-cache:
+              help: Purge the track cache
+              short: p
+              long: purge-cache
+              global: true
+          - cache-file:
+              help: Override the default cache file location
+              short: c
+              long: cache-file
+              global: true
     - scanner:
         about: Analyses a track or set of tracks and output loudness and peak info.
         args:

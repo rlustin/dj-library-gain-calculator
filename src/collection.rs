@@ -1,14 +1,18 @@
 use crate::analysis::collection_analysis;
+use crate::cache::*;
 use crate::error::AppError;
 use crate::models::Nml;
 use crate::models::Node;
 use clap::ArgMatches;
+use directories::ProjectDirs;
 use indicatif::{ProgressBar, ProgressStyle};
 use log::trace;
+use log::{info, warn};
 use parking_lot::Mutex;
 use quick_xml::de::from_reader;
 use quick_xml::events::{BytesDecl, BytesEnd, BytesStart, Event};
 use quick_xml::Writer;
+use std::fs::create_dir_all;
 use std::fs::{copy, File};
 use std::io::Cursor;
 use std::io::{BufReader, BufWriter, Write};
@@ -16,6 +20,8 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tempdir::TempDir;
+
+static DEFAULT_CACHE_FILE_NAME: &str = "dj-library-gain-calculator.db";
 
 pub fn run(matches: &ArgMatches) -> Result<(), AppError> {
     let input_path = matches.value_of("input").ok_or("no input provided")?;
@@ -28,6 +34,46 @@ pub fn run(matches: &ArgMatches) -> Result<(), AppError> {
     let output_temp_path = temp_dir.path().join("collection.nml");
     let output_stream = output_stream(&matches, &output_temp_path)?;
 
+    // try to find the cache
+    let maybe_cache_file = matches.value_of("cache-file");
+    let cache_file = match maybe_cache_file {
+        Some(d) => PathBuf::from(d),
+        None => match ProjectDirs::from("org", "rlustin", "dj-library-gain-calculator") {
+            Some(d) => {
+                match create_dir_all(d.cache_dir()) {
+                    Ok(_) => info!("Creating directory hierarchy {}", d.cache_dir().display()),
+                    Err(e) => info!(
+                        "Could not create directory hierarchy {}, ({})",
+                        d.cache_dir().display(),
+                        e
+                    ),
+                }
+                d.cache_dir().join(DEFAULT_CACHE_FILE_NAME)
+            }
+            None => {
+                warn!("Can't find cache dir, using pwd");
+                let mut p = PathBuf::from("./");
+                p.push(DEFAULT_CACHE_FILE_NAME);
+                p
+            }
+        },
+    };
+
+    info!("Database path: {}", cache_file.display());
+
+    let mut flags = CachePolicy::empty();
+    if matches.value_of("no-cache-read").is_some() {
+        flags |= CachePolicy::NO_READ;
+    }
+    if matches.value_of("no-cache-write").is_some() {
+        flags |= CachePolicy::NO_WRITE;
+    }
+    if matches.value_of("purge-cache").is_some() {
+        flags |= CachePolicy::PURGE;
+    }
+    let maybe_cache = Cache::new(&cache_file, flags)?;
+    let cache = Arc::new(Mutex::new(maybe_cache));
+
     let mut nml = deserialize_collection(input_path)?;
 
     let progress_bar = ProgressBar::new(nml.track_count());
@@ -39,14 +85,14 @@ pub fn run(matches: &ArgMatches) -> Result<(), AppError> {
 
     let progress_bar_after = progress_bar_threadsafe.clone();
 
-    let progress_callback = move |name: String| {
+    let progress_callback = move |file: &str| {
         let pb = Arc::clone(&progress_bar_threadsafe);
-        trace!("{} finished", name);
+        trace!("{} finished", file);
         pb.lock().inc(1);
-        pb.lock().set_message(&name);
+        pb.lock().set_message(file);
     };
 
-    collection_analysis(&mut nml, target_loudness, progress_callback);
+    collection_analysis(&mut nml, target_loudness, cache, progress_callback);
 
     progress_bar_after.lock().finish();
 

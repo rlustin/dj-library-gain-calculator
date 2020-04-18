@@ -6,9 +6,11 @@ edition = "2018"
 
 [dependencies]
 audrey = "0.2"
+bitflags = "1.2.1"
 cfg-if = "0.1"
 clap = { version = "2.33.0", features = ["yaml"] }
 claxon = "0.4.2"
+directories = "2.0"
 ebur128 = "0.1.0"
 hound = "3.4.0"
 indicatif = "0.14.0"
@@ -18,6 +20,7 @@ pretty_env_logger = "0.4"
 quick-xml = { version = "0.17", features = ["serialize"] }
 rayon = "1.3"
 rmp3 = { version = "0.2", features = ["float"] }
+rusqlite = "0.22.0"
 serde = { version = "1.0", features = ["derive", "rc"] }
 tempdir = "0.3"
 

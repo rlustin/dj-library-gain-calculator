@@ -1,7 +1,6 @@
+use quick_xml;
 use std;
 use std::error::Error;
-
-use quick_xml;
 
 #[derive(Debug)]
 pub enum AppError {
@@ -53,6 +52,19 @@ impl From<std::time::SystemTimeError> for AppError {
         AppError::GenericError(error.to_string())
     }
 }
+
+impl From<rusqlite::Error> for AppError {
+    fn from(error: rusqlite::Error) -> AppError {
+        AppError::GenericError(error.to_string())
+    }
+}
+
+// Nightly only https://github.com/rust-lang/rust/issues/42327
+// impl From<std::option::NoneError> for AppError {
+//     fn from(error: rusqlite::Error) -> AppError {
+//         AppError::GenericError(error.to_string())
+//     }
+// }
 
 impl From<&str> for AppError {
     fn from(error: &str) -> AppError {
