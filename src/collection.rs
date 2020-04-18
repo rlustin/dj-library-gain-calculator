@@ -3,6 +3,8 @@ use crate::error::AppError;
 use crate::models::Nml;
 use crate::models::Node;
 use clap::ArgMatches;
+use indicatif::{ProgressBar, ProgressStyle};
+use parking_lot::Mutex;
 use quick_xml::de::from_reader;
 use quick_xml::events::{BytesDecl, BytesEnd, BytesStart, Event};
 use quick_xml::Writer;
@@ -10,6 +12,7 @@ use std::fs::{copy, File};
 use std::io::Cursor;
 use std::io::{BufReader, BufWriter, Write};
 use std::path::PathBuf;
+use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tempdir::TempDir;
 
@@ -26,7 +29,24 @@ pub fn run(matches: &ArgMatches) -> Result<(), AppError> {
 
     let mut nml = deserialize_collection(input_path)?;
 
-    collection_analysis(&mut nml, target_loudness);
+    let progress_bar = ProgressBar::new(nml.track_count());
+    progress_bar.set_style(ProgressStyle::default_bar().template(
+        "{bar:60.cyan/blue} {pos:>5}/{len:5} [{elapsed_precise}/{eta_precise}] {wide_msg}",
+    ));
+    progress_bar.enable_steady_tick(500 /* ms */);
+    let progress_bar_threadsafe = Arc::new(Mutex::new(progress_bar));
+
+    let progress_bar_after = progress_bar_threadsafe.clone();
+
+    let progress_callback = move |name: String| {
+        let pb = Arc::clone(&progress_bar_threadsafe);
+        pb.lock().inc(1);
+        pb.lock().set_message(&name);
+    };
+
+    collection_analysis(&mut nml, target_loudness, progress_callback);
+
+    progress_bar_after.lock().finish();
 
     serialize_collection(nml, output_stream)?;
 
