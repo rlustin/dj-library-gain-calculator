@@ -12,7 +12,9 @@ claxon = "0.4.2"
 ebur128 = "0.1.0"
 hound = "3.4.0"
 indicatif = "0.14.0"
+log = "0.4"
 parking_lot = { version = "0.10", features = ["serde"] }
+pretty_env_logger = "0.4"
 quick-xml = { version = "0.17", features = ["serialize"] }
 rayon = "1.3"
 rmp3 = { version = "0.2", features = ["float"] }

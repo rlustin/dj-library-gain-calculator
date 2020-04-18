@@ -5,6 +5,7 @@ use cfg_if::cfg_if;
 use claxon;
 use ebur128::{EbuR128, Mode};
 use hound;
+use log::{error, warn};
 use rayon::prelude::*;
 use rmp3::{Decoder, Frame};
 use std::convert::TryInto;
@@ -215,8 +216,8 @@ where
             path.push_str(&entry.location.directory);
             path.retain(|c| c != ':');
             path.push_str(&entry.location.file);
-            // open file and decode
 
+            // open file and decode
             match scan_loudness(&path) {
                 Ok(loudness) => {
                     let peak = linear_to_db(loudness.true_peak);
@@ -224,7 +225,7 @@ where
                     let peak_after_gain = peak + gain;
 
                     if peak_after_gain > 0.0 {
-                        eprintln!("warning: {} clipping at {}", &path, peak_after_gain);
+                        warn!("warning: {} clipping at {}", &path, peak_after_gain);
                     }
 
                     if entry.loudness.is_some() {
@@ -241,7 +242,7 @@ where
                     progress_callback(entry.location.file.clone());
                 }
                 Err(e) => {
-                    eprintln!("{}", e);
+                    error!("{}", e);
                 }
             }
         });

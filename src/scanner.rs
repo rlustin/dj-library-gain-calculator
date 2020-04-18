@@ -1,4 +1,5 @@
 use clap::ArgMatches;
+use log::error;
 use rayon::prelude::*;
 
 use crate::analysis::scan_loudness;
@@ -21,7 +22,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), AppError> {
                 );
             }
             Err(e) => {
-                eprintln!("{}", e);
+                error!("{}", e);
             }
         };
     });
