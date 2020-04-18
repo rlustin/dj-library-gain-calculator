@@ -98,11 +98,17 @@ fn handle_claxon(path: &str) -> Result<DecodedFile, String> {
                     return Err("flac sample type not supported".to_string());
                 }
             };
-            let data = reader
-                .samples()
-                .map(Result::unwrap)
-                .map(conversion_function)
-                .collect::<Vec<f32>>();
+            let mut data = Vec::<f32>::new();
+            for s in reader.samples() {
+                match s {
+                    Ok(f) => {
+                        data.push(conversion_function(f));
+                    }
+                    Err(_) => {
+                        return Err(format!("invalid flac file {}", path));
+                    }
+                }
+            }
             let spec = reader.streaminfo();
             Ok(DecodedFile {
                 channels: spec.channels,
