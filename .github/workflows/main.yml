@@ -10,49 +10,7 @@ name: CI
 
 jobs:
   build:
-    name: Build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-
-      - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --verbose
-
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-
-      - name: Install libxml2
-        run: sudo apt-get update; sudo apt-get install libxml2-utils; which xmllint; xmllint --version
-
-      - name: Run cargo test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-
-  lint:
-    name: Lint
+    name: Build-Test-Format-Lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
@@ -66,5 +24,25 @@ jobs:
           override: true
           components: rustfmt, clippy
 
+      - name: Install sqlite3 development package
+        run: sudo apt-get update; sudo apt-get install libsqlite3-dev
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --verbose
+
+      - name: Install libxml2
+        run: sudo apt-get update; sudo apt-get install libxml2-utils; which xmllint; xmllint --version
+
+      - name: Run cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+
       - name: Run cargo fmt
+        uses: actions-rs/cargo@v1
+
+      - name: Run cargo clippy
         uses: actions-rs/cargo@v1
