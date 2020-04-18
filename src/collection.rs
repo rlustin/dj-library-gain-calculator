@@ -153,6 +153,7 @@ fn kv_to_tuple<'a>(k: &'a str, v: &'a Option<String>) -> (&'a str, &'a str) {
     (k, v.as_ref().unwrap().as_str())
 }
 
+#[allow(clippy::cognitive_complexity)]
 fn serialize_collection(
     collection: Nml,
     mut output_stream: Box<dyn Write>,
