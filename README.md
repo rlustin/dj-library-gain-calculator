@@ -3,17 +3,18 @@
 Analyses all tracks in a Traktor DJ library to have constant loudness.
 
 This application computes the loudness of each track of your Traktor DJ library,
-and normalize audio so each track of your DJ set are at roughly the same perceptual level.
+and normalize audio so each track of your DJ set are at roughly the same
+perceptual level.
 
-Normalization is performed using the [TECH 3341 loudness metering](https://tech.ebu.ch/docs/tech/tech3341.pdf)
+Normalization is performed using the
+[TECH 3341 loudness metering](https://tech.ebu.ch/docs/tech/tech3341.pdf)
 under the hood.
 
 ## Usage
 
 ```bash
-$ dj-library-gain-calculator --help
 dj-library-gain-calculator 0.1.0
-Analyses all tracks in a Traktor DJ library to have constant loudness.
+Analyses all tracks in a Traktor DJ collection to have constant loudness.
 
 USAGE:
     dj-library-gain-calculator [SUBCOMMAND]
@@ -23,25 +24,28 @@ FLAGS:
     -V, --version    Prints version information
 
 SUBCOMMANDS:
-    help       Prints this message or the help of the given subcommand(s)
-    library    Analyses all tracks in a Traktor DJ library to have constant loudness.
-    track      Analyse a track or set of tracks and output loudness and peak info.
+    collection    Analyses all tracks in a Traktor DJ collection to have constant loudness.
+    help          Prints this message or the help of the given subcommand(s)
+    scanner       Analyses a track or set of tracks and output loudness and peak info.
 ```
 
-### Analyze a Traktor DJ library
+### Analyze a Traktor DJ collection
 
 ```bash
-$ dj-library-gain-calculator collection --help
-dj-library-gain-calculator-collection
+dj-library-gain-calculator-collection 
 Analyses all tracks in a Traktor DJ collection to have constant loudness.
 
 USAGE:
     dj-library-gain-calculator collection [FLAGS] [OPTIONS] --input <input>
 
 FLAGS:
-    -h, --help       Prints help information
-    -V, --version    Prints version information
-    -w, --write      Updates the Traktor collection in place.
+    -c, --cache-file        Override the default cache file location
+    -h, --help              Prints help information
+        --no-cache-read     Don't read from cache
+        --no-cache-write    Don't write to cache
+    -p, --purge-cache       Purge the track cache
+    -V, --version           Prints version information
+    -w, --write             Updates the Traktor collection in place.
 
 OPTIONS:
     -i, --input <input>      The input Traktor collection file to use.
@@ -49,10 +53,10 @@ OPTIONS:
     -t, --target <target>    Target loudness in dB LUFS (negative value). [default: -14.0]
 ```
 
-#### Example to update your Traktor library in place:
+#### Example to update a Traktor collection in place:
 
 ```bash
-dj-library-gain-calculator library --input ~/Documents/Native\ Instruments/Traktor\ 3.3.0/collection.nml --write
+dj-library-gain-calculator collection --input ~/Documents/Native\ Instruments/Traktor\ 3.3.0/collection.nml --write
 ```
 
 This analysis only works if
@@ -79,4 +83,5 @@ ARGS:
 
 ## Development
 
-Use [cargo](https://doc.rust-lang.org/stable/cargo/) commands to build and run the application.
+Use [cargo](https://doc.rust-lang.org/stable/cargo/) commands to build and run
+the application.
