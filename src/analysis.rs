@@ -1,11 +1,14 @@
+use crate::cache::*;
 use crate::models;
+use crate::models::Entry;
 use crate::utils::*;
 use audrey;
 use cfg_if::cfg_if;
 use claxon;
 use ebur128::{EbuR128, Mode};
 use hound;
-use log::{error, warn};
+use log::{error, trace, warn};
+use parking_lot::Mutex;
 use rayon::prelude::*;
 use rmp3::{Decoder, Frame};
 use std::convert::TryInto;
@@ -13,6 +16,7 @@ use std::ffi::OsStr;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
+use std::sync::Arc;
 
 pub struct DecodedFile {
     channels: u32,
@@ -191,9 +195,42 @@ pub fn scan_loudness(path: &str) -> Result<ComputedLoudness, String> {
     }
 }
 
-pub fn collection_analysis<T>(collection: &mut models::Nml, target_loudness: f32, progress_callback: T)
-where
-    T: Fn(String) + Send + 'static + std::marker::Sync,
+pub fn compute_and_update_model(
+    loudness: &ComputedLoudness,
+    target_loudness: f32,
+    entry: &mut Entry,
+) {
+    let peak = linear_to_db(loudness.true_peak);
+    let gain = loudness_to_gain(loudness.integrated_loudness, target_loudness);
+    let peak_after_gain = peak + gain;
+
+    if peak_after_gain > 0.0 {
+        warn!(
+            "warning: {} clipping at {}",
+            entry.location.file, peak_after_gain
+        );
+    }
+
+    if entry.loudness.is_some() {
+        entry.loudness.as_mut().unwrap().analyzed_db = gain as f64;
+        entry.loudness.as_mut().unwrap().perceived_db = gain as f64;
+        entry.loudness.as_mut().unwrap().peak_db = peak as f64;
+    } else {
+        entry.loudness = Some(models::Loudness {
+            analyzed_db: gain as f64,
+            perceived_db: gain as f64,
+            peak_db: peak as f64,
+        })
+    }
+}
+
+pub fn collection_analysis<T>(
+    collection: &mut models::Nml,
+    target_loudness: f32,
+    cache: Arc<Mutex<Cache>>,
+    progress_callback: T,
+) where
+    T: Fn(&str) + Send + 'static + std::marker::Sync,
 {
     collection
         .collection
@@ -217,29 +254,31 @@ where
             path.retain(|c| c != ':');
             path.push_str(&entry.location.file);
 
+            // can't do this in one statement because it deadlocks
+            let v = cache.lock().get(&entry.location.file);
+            match v {
+                Some(info) => {
+                    trace!("cache hit {} ", entry.location.file);
+                    compute_and_update_model(&info.loudness_info, target_loudness, &mut entry);
+                    progress_callback(&entry.location.file);
+                    return;
+                }
+                None => {
+                    trace!("cache miss {} ", entry.location.file);
+                }
+            }
+
             // open file and decode
             match scan_loudness(&path) {
                 Ok(loudness) => {
-                    let peak = linear_to_db(loudness.true_peak);
-                    let gain = loudness_to_gain(loudness.integrated_loudness, target_loudness);
-                    let peak_after_gain = peak + gain;
+                    compute_and_update_model(&loudness, target_loudness, &mut entry);
 
-                    if peak_after_gain > 0.0 {
-                        warn!("warning: {} clipping at {}", &path, peak_after_gain);
-                    }
-
-                    if entry.loudness.is_some() {
-                        entry.loudness.as_mut().unwrap().analyzed_db = gain as f64;
-                        entry.loudness.as_mut().unwrap().perceived_db = gain as f64;
-                        entry.loudness.as_mut().unwrap().peak_db = peak as f64;
-                    } else {
-                        entry.loudness = Some(models::Loudness {
-                            analyzed_db: gain as f64,
-                            perceived_db: gain as f64,
-                            peak_db: peak as f64,
-                        })
-                    }
-                    progress_callback(entry.location.file.clone());
+                    cache.lock().store(AnalyzedFile {
+                        // change for path? less resilient when moving collection
+                        name: entry.location.file.clone(),
+                        loudness_info: loudness,
+                    });
+                    progress_callback(&entry.location.file);
                 }
                 Err(e) => {
                     error!("{}", e);
