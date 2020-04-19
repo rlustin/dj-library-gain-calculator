@@ -16,7 +16,7 @@ bitflags! {
 }
 
 pub struct AnalyzedFile {
-    pub name: String,
+    pub audio_id: String,
     pub loudness_info: ComputedLoudness,
 }
 
@@ -42,7 +42,7 @@ impl Cache {
                 db.execute(
                     "CREATE TABLE IF NOT EXISTS tracks (
                          id INTEGER PRIMARY KEY,
-                         name TEXT NOT NULL UNIQUE,
+                         audio_id TEXT NOT NULL UNIQUE,
                          analyzed_db REAL,
                          peak_db REAL
                      )",
@@ -65,7 +65,7 @@ impl Cache {
 
         let maybe_statement = self
             .db
-            .prepare("SELECT name, analyzed_db, peak_db FROM tracks where name = ?1");
+            .prepare("SELECT audio_id, analyzed_db, peak_db FROM tracks where audio_id = ?1");
         let mut statement = match maybe_statement {
             Ok(s) => s,
             Err(_) => {
@@ -79,7 +79,7 @@ impl Cache {
                     let true_peak = row.get::<_, f64>(2).unwrap() as f32;
                     return Some({
                         AnalyzedFile {
-                            name: row.get(0).unwrap(),
+                            audio_id: row.get(0).unwrap(),
                             loudness_info: ComputedLoudness {
                                 integrated_loudness,
                                 true_peak,
@@ -98,23 +98,23 @@ impl Cache {
 
         None
     }
-    pub fn store(&self, value: AnalyzedFile) {
+    pub fn store(&self, file: AnalyzedFile) {
         if self.policy.contains(CachePolicy::NO_WRITE) {
             return;
         }
         match self.db.execute(
-            "INSERT INTO tracks (name, analyzed_db, peak_db) VALUES (?1, ?2, ?3)",
+            "INSERT INTO tracks (audio_id, analyzed_db, peak_db) VALUES (?1, ?2, ?3)",
             &[
-                &value.name,
-                &value.loudness_info.integrated_loudness.to_string(),
-                &value.loudness_info.true_peak.to_string(),
+                &file.audio_id,
+                &file.loudness_info.integrated_loudness.to_string(),
+                &file.loudness_info.true_peak.to_string(),
             ],
         ) {
             Ok(_) => {
-                trace!("Storing a result for {}", value.name);
+                trace!("Storing a result for {}", file.audio_id);
             }
             Err(e) => {
-                trace!("Error storing a result for {} ({})", value.name, e);
+                trace!("Error storing a result for {} ({})", file.audio_id, e);
             }
         }
     }
