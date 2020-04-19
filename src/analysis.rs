@@ -254,7 +254,6 @@ pub fn collection_analysis<T>(
             path.retain(|c| c != ':');
             path.push_str(&entry.location.file);
 
-            // can't do this in one statement because it deadlocks
             let v = cache.lock().get(&entry.location.file);
             match v {
                 Some(info) => {

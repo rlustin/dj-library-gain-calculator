@@ -85,11 +85,11 @@ pub fn run(matches: &ArgMatches) -> Result<(), AppError> {
 
     let progress_bar_after = progress_bar_threadsafe.clone();
 
-    let progress_callback = move |file: &str| {
+    let progress_callback = move |file_name: &str| {
         let pb = Arc::clone(&progress_bar_threadsafe);
-        trace!("{} finished", file);
+        trace!("{} finished", file_name);
         pb.lock().inc(1);
-        pb.lock().set_message(file);
+        pb.lock().set_message(file_name);
     };
 
     collection_analysis(&mut nml, target_loudness, cache, progress_callback);
