@@ -195,7 +195,7 @@ pub fn scan_loudness(path: &str) -> Result<ComputedLoudness, String> {
     }
 }
 
-pub fn compute_and_update_model(
+fn compute_and_update_model(
     loudness: &ComputedLoudness,
     target_loudness: f32,
     entry: &mut Entry,
@@ -254,16 +254,18 @@ pub fn collection_analysis<T>(
             path.retain(|c| c != ':');
             path.push_str(&entry.location.file);
 
-            let v = cache.lock().get(&entry.location.file);
-            match v {
-                Some(info) => {
-                    trace!("cache hit {} ", entry.location.file);
-                    compute_and_update_model(&info.loudness_info, target_loudness, &mut entry);
-                    progress_callback(&entry.location.file);
-                    return;
-                }
-                None => {
-                    trace!("cache miss {} ", entry.location.file);
+            if let Some(audio_id) = &entry.audio_id {
+                let v = cache.lock().get(&audio_id);
+                match v {
+                    Some(info) => {
+                        trace!("cache hit {} ", entry.location.file);
+                        compute_and_update_model(&info.loudness_info, target_loudness, &mut entry);
+                        progress_callback(&entry.location.file);
+                        return;
+                    }
+                    None => {
+                        trace!("cache miss {} ", entry.location.file);
+                    }
                 }
             }
 
@@ -272,11 +274,12 @@ pub fn collection_analysis<T>(
                 Ok(loudness) => {
                     compute_and_update_model(&loudness, target_loudness, &mut entry);
 
-                    cache.lock().store(AnalyzedFile {
-                        // change for path? less resilient when moving collection
-                        name: entry.location.file.clone(),
-                        loudness_info: loudness,
-                    });
+                    if let Some(audio_id) = &entry.audio_id {
+                        cache.lock().store(AnalyzedFile {
+                            audio_id: audio_id.clone(),
+                            loudness_info: loudness,
+                        });
+                    }
                     progress_callback(&entry.location.file);
                 }
                 Err(e) => {
