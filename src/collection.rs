@@ -62,13 +62,13 @@ pub fn run(matches: &ArgMatches) -> Result<(), AppError> {
     info!("Database path: {}", cache_file.display());
 
     let mut flags = CachePolicy::empty();
-    if matches.value_of("no-cache-read").is_some() {
+    if matches.is_present("no-cache-read") {
         flags |= CachePolicy::NO_READ;
     }
-    if matches.value_of("no-cache-write").is_some() {
+    if matches.is_present("no-cache-write") {
         flags |= CachePolicy::NO_WRITE;
     }
-    if matches.value_of("purge-cache").is_some() {
+    if matches.is_present("purge-cache") {
         flags |= CachePolicy::PURGE;
     }
     let maybe_cache = Cache::new(&cache_file, flags)?;
