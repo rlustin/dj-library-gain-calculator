@@ -171,6 +171,8 @@ pub fn scan_loudness(path: &str) -> Result<ComputedLoudness, String> {
         .extension()
         .and_then(OsStr::to_str)
         .unwrap_or("??")
+        .to_lowercase()
+        .as_str()
     {
         "ogg" => handle_audrey(&path),
         "wav" => handle_hound(&path),
