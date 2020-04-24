@@ -48,7 +48,7 @@ fn handle_audrey(path: &str) -> Result<DecodedFile, String> {
             data,
         })
     } else {
-        Err("file not found".to_string())
+        Err(format!("file not found: {}", &path))
     }
 }
 
@@ -105,7 +105,7 @@ fn handle_claxon(path: &str) -> Result<DecodedFile, String> {
                         data.push(conversion_function(f));
                     }
                     Err(_) => {
-                        return Err(format!("invalid flac file {}", path));
+                        return Err(format!("invalid flac: {}", path));
                     }
                 }
             }
@@ -116,7 +116,7 @@ fn handle_claxon(path: &str) -> Result<DecodedFile, String> {
                 data,
             })
         }
-        Err(_) => Err("invalid flac".to_string()),
+        Err(_) => Err(format!("invalid flac: {}", &path)),
     }
 }
 
@@ -156,7 +156,7 @@ fn handle_minimp3(path: &str) -> Result<DecodedFile, String> {
                 data: pcm_data,
             })
         }
-        _ => Err("file not found".to_string()),
+        _ => Err(format!("file not found: {}", &path)),
     }
 }
 
@@ -178,7 +178,7 @@ pub fn scan_loudness(path: &str) -> Result<ComputedLoudness, String> {
         "wav" => handle_hound(&path),
         "flac" => handle_claxon(&path),
         "mp3" => handle_minimp3(&path),
-        _ => Err("unknown file type".to_string()),
+        _ => Err(format!("unknown file type: {}", &path)),
     };
 
     match decode_result {
