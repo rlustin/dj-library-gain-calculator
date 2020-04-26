@@ -203,20 +203,13 @@ pub fn scan_loudness(path: &str) -> Result<ComputedLoudness, String> {
     }
 }
 
-fn compute_and_update_model(
-    loudness: &ComputedLoudness,
-    target_loudness: f32,
-    entry: &mut Entry,
-) {
+fn compute_and_update_model(loudness: &ComputedLoudness, target_loudness: f32, entry: &mut Entry) {
     let peak = linear_to_db(loudness.true_peak);
     let gain = loudness_to_gain(loudness.integrated_loudness, target_loudness);
     let peak_after_gain = peak + gain;
 
     if peak_after_gain > 0.0 {
-        warn!(
-            "warning: {} clipping at {}",
-            entry.location.file, peak_after_gain
-        );
+        warn!("{} clipping at {}", entry.location.file, peak_after_gain);
     }
 
     if entry.loudness.is_some() {
