@@ -2,15 +2,20 @@ pub mod analysis;
 mod cache;
 mod collection;
 mod error;
+mod logging;
 mod models;
+mod progress;
 mod scanner;
 mod utils;
 
+use crate::logging::Logger;
 use crate::utils::exit_with_error;
 use clap::{load_yaml, App};
+use log::LevelFilter::Warn;
 
 pub fn cli() {
-    pretty_env_logger::init();
+    log::set_max_level(Warn);
+    log::set_logger(&Logger).unwrap();
 
     let yaml = load_yaml!("cli.yml");
     let app = App::from(yaml);
