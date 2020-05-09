@@ -84,6 +84,12 @@ pub struct Info {
     pub play_time_float: Option<String>,
     #[serde(rename = "RELEASE_DATE")]
     pub release_date: Option<String>,
+    #[serde(rename = "RATING")]
+    pub rating: Option<String>,
+    #[serde(rename = "COMMENT")]
+    pub comment: Option<String>,
+    #[serde(rename = "RANKING")]
+    pub ranking: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]

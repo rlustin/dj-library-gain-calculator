@@ -292,6 +292,15 @@ fn serialize_collection(
         if entry.info.release_date.is_some() {
             info_start_tag.push_attribute(kv_to_tuple("RELEASE_DATE", &entry.info.release_date));
         }
+        if entry.info.ranking.is_some() {
+            info_start_tag.push_attribute(kv_to_tuple("RANKING", &entry.info.ranking));
+        }
+        if entry.info.rating.is_some() {
+            info_start_tag.push_attribute(kv_to_tuple("RATING", &entry.info.rating));
+        }
+        if entry.info.comment.is_some() {
+            info_start_tag.push_attribute(kv_to_tuple("COMMENT", &entry.info.comment));
+        }
         if entry.info.flags.is_some() {
             info_start_tag.push_attribute((
                 "FLAGS",
