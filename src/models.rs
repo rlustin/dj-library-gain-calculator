@@ -230,7 +230,7 @@ pub struct SortingOrder {
     #[serde(rename = "PATH")]
     pub path: String,
     #[serde(rename = "SORTING_DATA")]
-    pub sorting_data: SortingData,
+    pub sorting_data: Option<SortingData>,
 }
 
 #[derive(Debug, Deserialize)]

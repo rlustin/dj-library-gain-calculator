@@ -400,11 +400,14 @@ fn serialize_collection(
             sorting_order_tag.push_attribute(("PATH", sorting_order.path.as_str()));
             writer.write_event(Event::Start(sorting_order_tag))?;
 
-            let mut sorting_data_tag = BytesStart::owned("SORTING_DATA", "SORTING_DATA".len());
-            sorting_data_tag.push_attribute(("IDX", sorting_order.sorting_data.idx.as_ref()));
-            sorting_data_tag.push_attribute(("ORD", sorting_order.sorting_data.ord.as_ref()));
-            writer.write_event(Event::Start(sorting_data_tag))?;
-            writer.write_event(Event::End(BytesEnd::borrowed(b"SORTING_DATA")))?;
+            if sorting_order.sorting_data.is_some() {
+                let sorting_data = sorting_order.sorting_data.as_ref().unwrap();
+                let mut sorting_data_tag = BytesStart::owned("SORTING_DATA", "SORTING_DATA".len());
+                sorting_data_tag.push_attribute(("IDX", sorting_data.idx.as_ref()));
+                sorting_data_tag.push_attribute(("ORD", sorting_data.ord.as_ref()));
+                writer.write_event(Event::Start(sorting_data_tag))?;
+                writer.write_event(Event::End(BytesEnd::borrowed(b"SORTING_DATA")))?;
+            }
 
             writer.write_event(Event::End(BytesEnd::borrowed(b"SORTING_ORDER")))?;
         }
