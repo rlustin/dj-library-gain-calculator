@@ -5,7 +5,7 @@ authors = ["Paul Adenot <paul@paul.cx>", "Raphaël Lustin <raphael@lustin.fr>"]
 edition = "2018"
 
 [dependencies]
-audrey = "0.2"
+audrey = "0.3"
 bitflags = "1.2.1"
 cfg-if = "0.1"
 chrono = "0.4.11"
