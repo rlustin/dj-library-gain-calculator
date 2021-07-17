@@ -96,7 +96,11 @@ pub fn run(matches: &ArgMatches) -> Result<(), AppError> {
 
     progress_bar_after.lock().finish();
 
+    trace!("Finished - serializing collection");
+
     serialize_collection(nml, output_stream)?;
+
+    trace!("Saving collection");
 
     if update_in_place(&matches) {
         // Backup the collection.
@@ -144,9 +148,15 @@ fn update_in_place(matches: &ArgMatches) -> bool {
 fn deserialize_collection(path: &str) -> Result<Nml, AppError> {
     let file = File::open(path)?;
     let buf_reader = BufReader::new(file);
-    let nml: Nml = from_reader(buf_reader)?;
-
-    Ok(nml)
+    match from_reader(buf_reader) {
+        Ok(nml) => {
+            Ok(nml)
+        }
+        Err(e) => {
+            println!("{:?}", e);
+            return Err("deserialization error".into());
+        }
+    }
 }
 
 fn kv_to_tuple<'a>(k: &'a str, v: &'a Option<String>) -> (&'a str, &'a str) {
@@ -330,11 +340,11 @@ fn serialize_collection(
         if entry.loudness.is_some() {
             let loudness = entry.loudness.as_ref().unwrap();
             let mut loudness_start_tag = BytesStart::owned("LOUDNESS", "LOUDNESS".len());
-            loudness_start_tag.push_attribute(("PEAK_DB", &*format!("{:.6}", loudness.peak_db)));
+            loudness_start_tag.push_attribute(("PEAK_DB", &*format!("{:.6}", loudness.peak_db.unwrap_or(0.0))));
             loudness_start_tag
-                .push_attribute(("PERCEIVED_DB", &*format!("{:.6}", loudness.perceived_db)));
+                .push_attribute(("PERCEIVED_DB", &*format!("{:.6}", loudness.perceived_db.unwrap_or(0.0))));
             loudness_start_tag
-                .push_attribute(("ANALYZED_DB", &*format!("{:.6}", loudness.analyzed_db)));
+                .push_attribute(("ANALYZED_DB", &*format!("{:.6}", loudness.analyzed_db.unwrap_or(0.0))));
             writer.write_event(Event::Start(loudness_start_tag))?;
             writer.write_event(Event::End(BytesEnd::borrowed(b"LOUDNESS")))?;
         }
