@@ -10,7 +10,7 @@ use hound;
 use log::{error, trace, warn};
 use parking_lot::Mutex;
 use rayon::prelude::*;
-use rmp3::{Decoder, Frame};
+use rmp3::{Decoder, Frame::Audio};
 use std::convert::TryInto;
 use std::ffi::OsStr;
 use std::fs::File;
@@ -131,24 +131,24 @@ fn handle_minimp3(path: &str) -> Result<DecodedFile, String> {
             let mut rate: u32 = 0;
             let mut ch: u32 = 0;
             let mut pcm_data = Vec::<f32>::new();
-            while let Some(Frame {
-                channels,
-                sample_rate,
-                samples,
-                ..
-            }) = decoder.next_frame()
+            while let Some(frame) = decoder.next()
             {
-                if rate != sample_rate && rate != 0 {
-                    return Err("inconsistent sample-rate".to_string());
-                } else {
-                    rate = sample_rate;
+                if let Audio(audio) = frame {
+                    let sample_rate = audio.sample_rate();
+                    let channels = audio.channels();
+                    let samples = audio.samples();
+                    if rate != sample_rate && rate != 0 {
+                        return Err("inconsistent sample-rate".to_string());
+                    } else {
+                        rate = sample_rate;
+                    }
+                    if ch != channels.try_into().unwrap() && ch != 0 {
+                        return Err("inconsistent channel count".to_string());
+                    } else {
+                        ch = channels.try_into().unwrap();
+                    }
+                    pcm_data.extend(samples);
                 }
-                if ch != channels.try_into().unwrap() && ch != 0 {
-                    return Err("inconsistent channel count".to_string());
-                } else {
-                    ch = channels.try_into().unwrap();
-                }
-                pcm_data.extend(samples);
             }
             Ok(DecodedFile {
                 channels: ch,
