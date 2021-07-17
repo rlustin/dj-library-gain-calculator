@@ -213,14 +213,14 @@ fn compute_and_update_model(loudness: &ComputedLoudness, target_loudness: f32, e
     }
 
     if entry.loudness.is_some() {
-        entry.loudness.as_mut().unwrap().analyzed_db = gain as f64;
-        entry.loudness.as_mut().unwrap().perceived_db = gain as f64;
-        entry.loudness.as_mut().unwrap().peak_db = peak as f64;
+        entry.loudness.as_mut().unwrap().analyzed_db = Some(gain as f64);
+        entry.loudness.as_mut().unwrap().perceived_db = Some(gain as f64);
+        entry.loudness.as_mut().unwrap().peak_db = Some(peak as f64);
     } else {
         entry.loudness = Some(models::Loudness {
-            analyzed_db: gain as f64,
-            perceived_db: gain as f64,
-            peak_db: peak as f64,
+            analyzed_db: Some(gain as f64),
+            perceived_db: Some(gain as f64),
+            peak_db: Some(peak as f64),
         })
     }
 }

@@ -125,11 +125,11 @@ pub struct Location {
 #[derive(Debug, Deserialize)]
 pub struct Loudness {
     #[serde(rename = "ANALYZED_DB")]
-    pub analyzed_db: f64,
+    pub analyzed_db: Option<f64>,
     #[serde(rename = "PERCEIVED_DB")]
-    pub perceived_db: f64,
+    pub perceived_db: Option<f64>,
     #[serde(rename = "PEAK_DB")]
-    pub peak_db: f64,
+    pub peak_db: Option<f64>,
 }
 
 #[derive(Debug, Deserialize)]
