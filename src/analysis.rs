@@ -1,6 +1,7 @@
 use crate::cache::*;
 use crate::models;
 use crate::models::Entry;
+use crate::models::AnalysisDifference;
 use crate::utils::*;
 use audrey;
 use cfg_if::cfg_if;
@@ -144,14 +145,14 @@ fn handle_minimp3(path: &str) -> Result<DecodedFile, String> {
             {
                 if let Audio(audio) = frame {
                     let sample_rate = audio.sample_rate();
-                    let channels = audio.channels();
+                    let channels = audio.channels() as u32;
                     let samples = audio.samples();
                     if rate != sample_rate && rate != 0 {
                         return Err("inconsistent sample-rate".to_string());
                     } else {
                         rate = sample_rate;
                     }
-                    if ch != channels.try_into().unwrap() && ch != 0 {
+                    if ch != channels && ch != 0 {
                         return Err("inconsistent channel count".to_string());
                     } else {
                         ch = channels.try_into().unwrap();
@@ -212,7 +213,7 @@ pub fn scan_loudness(path: &str) -> Result<ComputedLoudness, String> {
     }
 }
 
-fn compute_and_update_model(loudness: &ComputedLoudness, target_loudness: f32, entry: &mut Entry) {
+fn compute_and_update_model(loudness: &ComputedLoudness, target_loudness: f32, entry: &mut Entry) -> AnalysisDifference {
     let peak = linear_to_db(loudness.true_peak);
     let gain = loudness_to_gain(loudness.integrated_loudness, target_loudness);
     let peak_after_gain = peak + gain;
@@ -221,7 +222,22 @@ fn compute_and_update_model(loudness: &ComputedLoudness, target_loudness: f32, e
         warn!("{} clipping at {}", entry.location.file, peak_after_gain);
     }
 
+    let mut diff = AnalysisDifference {
+        path: entry.location.file.clone(),
+        human_name: format!("{} - {}", entry.artist.as_ref().unwrap_or(&"?".to_string()), entry.title.as_ref().unwrap_or(&"?".to_string())),
+        original_analyzed_db: None,
+        original_perceived_db: None,
+        original_peak_db: None,
+        computed_analyzed_db: loudness.integrated_loudness as f64,
+        computed_perceived_db: loudness.integrated_loudness as f64,
+        computed_peak_db: peak as f64,
+    };
+
     if entry.loudness.is_some() {
+        let loudness = entry.loudness.as_ref().unwrap();
+        diff.original_analyzed_db = loudness.analyzed_db;
+        diff.original_perceived_db = loudness.perceived_db;
+        diff.original_peak_db = loudness.peak_db;
         entry.loudness.as_mut().unwrap().analyzed_db = Some(gain as f64);
         entry.loudness.as_mut().unwrap().perceived_db = Some(gain as f64);
         entry.loudness.as_mut().unwrap().peak_db = Some(peak as f64);
@@ -232,6 +248,7 @@ fn compute_and_update_model(loudness: &ComputedLoudness, target_loudness: f32, e
             peak_db: Some(peak as f64),
         })
     }
+    return diff;
 }
 
 pub fn collection_analysis<T>(
@@ -239,9 +256,12 @@ pub fn collection_analysis<T>(
     target_loudness: f32,
     cache: Arc<Mutex<Cache>>,
     progress_callback: T,
+    diff: &mut Vec<AnalysisDifference>
 ) where
     T: Fn(&str) + Send + 'static + std::marker::Sync,
 {
+    let locked_diff = Mutex::new(diff);
+
     collection
         .collection
         .entries
@@ -269,7 +289,8 @@ pub fn collection_analysis<T>(
                 match v {
                     Some(info) => {
                         trace!("cache hit {} ", entry.location.file);
-                        compute_and_update_model(&info.loudness_info, target_loudness, &mut entry);
+                        let diff = compute_and_update_model(&info.loudness_info, target_loudness, &mut entry);
+                        locked_diff.lock().push(diff);
                         progress_callback(&entry.location.file);
                         return;
                     }
@@ -282,7 +303,9 @@ pub fn collection_analysis<T>(
             // open file and decode
             match scan_loudness(&path) {
                 Ok(loudness) => {
-                    compute_and_update_model(&loudness, target_loudness, &mut entry);
+                    let diff = compute_and_update_model(&loudness, target_loudness, &mut entry);
+
+                    locked_diff.lock().push(diff);
 
                     if let Some(audio_id) = &entry.audio_id {
                         cache.lock().store(AnalyzedFile {

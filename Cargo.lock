@@ -308,6 +308,7 @@ dependencies = [
  "rmp3",
  "rusqlite",
  "serde",
+ "serde_json",
  "tempdir",
  "walkdir",
 ]

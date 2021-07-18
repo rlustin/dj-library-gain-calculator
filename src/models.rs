@@ -1,5 +1,5 @@
 use parking_lot::Mutex;
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 use std::sync::Arc;
 
 #[derive(Debug, Deserialize)]
@@ -247,4 +247,16 @@ pub struct Tempo {
     pub bpm: Option<String>,
     #[serde(rename = "BPM_QUALITY")]
     pub bpm_quality: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct AnalysisDifference {
+    pub human_name: String,
+    pub path: String,
+    pub original_analyzed_db: Option<f64>,
+    pub original_perceived_db: Option<f64>,
+    pub original_peak_db: Option<f64>,
+    pub computed_analyzed_db: f64,
+    pub computed_perceived_db: f64,
+    pub computed_peak_db: f64
 }
