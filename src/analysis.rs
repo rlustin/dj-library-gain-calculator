@@ -41,12 +41,21 @@ fn handle_audrey(path: &str) -> Result<DecodedFile, String> {
     let maybe_file = audrey::read::open(&path);
     if let Ok(mut file) = maybe_file {
         let desc = file.description();
-        let data: Vec<f32> = file.samples().map(Result::unwrap).collect::<Vec<_>>();
-        Ok(DecodedFile {
-            channels: desc.channel_count(),
-            rate: desc.sample_rate(),
-            data,
-        })
+
+        let data: Result<Vec<f32>,_> = file.samples().collect::<Result<Vec<f32>, _>>();
+
+        match data {
+            Ok(d) => {
+                Ok(DecodedFile {
+                    channels: desc.channel_count(),
+                    rate: desc.sample_rate(),
+                    data: d,
+                })
+            },
+            Err(_) => {
+                Err(format!("vorbis decoding error: {}", &path))
+            }
+        }
     } else {
         Err(format!("file not found: {}", &path))
     }
