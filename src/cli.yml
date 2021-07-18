@@ -48,6 +48,12 @@ subcommands:
               short: c
               long: cache-file
               global: true
+          - difference-report:
+              help: Output the gain difference
+              short: d
+              long: difference-report
+              takes_value: true
+              global: true
     - scanner:
         about: Analyses a track or set of tracks and output loudness and peak info.
         args:

@@ -3,6 +3,7 @@ use crate::cache::*;
 use crate::error::AppError;
 use crate::models::Nml;
 use crate::models::Node;
+use crate::models::AnalysisDifference;
 use crate::progress::ProgressBar;
 use clap::ArgMatches;
 use directories::ProjectDirs;
@@ -92,11 +93,26 @@ pub fn run(matches: &ArgMatches) -> Result<(), AppError> {
         pb.lock().set_message(file_name);
     };
 
-    collection_analysis(&mut nml, target_loudness, cache, progress_callback);
+    let mut report_data = Vec::<AnalysisDifference>::new();
+
+    let difference_report_path = if matches.is_present("difference-report") {
+        Some(matches.value_of("difference-report").ok_or("difference_report.html"))
+    } else {
+        None
+    };
+
+    collection_analysis(&mut nml, target_loudness, cache, progress_callback, &mut report_data);
 
     progress_bar_after.lock().finish();
 
     trace!("Finished - serializing collection");
+
+    if difference_report_path.is_some() {
+        let report_file = File::create(difference_report_path.unwrap().unwrap())?;
+        let mut writer = BufWriter::new(report_file);
+        let serialized = serde_json::to_string(&report_data).unwrap();
+        writer.write_all(serialized.as_bytes())?;
+    }
 
     serialize_collection(nml, output_stream)?;
 
