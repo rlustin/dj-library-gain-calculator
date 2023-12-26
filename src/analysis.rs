@@ -1,7 +1,7 @@
 use crate::cache::*;
 use crate::models;
-use crate::models::Entry;
 use crate::models::AnalysisDifference;
+use crate::models::Entry;
 use crate::utils::*;
 use audrey;
 use cfg_if::cfg_if;
@@ -43,19 +43,15 @@ fn handle_audrey(path: &str) -> Result<DecodedFile, String> {
     if let Ok(mut file) = maybe_file {
         let desc = file.description();
 
-        let data: Result<Vec<f32>,_> = file.samples().collect::<Result<Vec<f32>, _>>();
+        let data: Result<Vec<f32>, _> = file.samples().collect::<Result<Vec<f32>, _>>();
 
         match data {
-            Ok(d) => {
-                Ok(DecodedFile {
-                    channels: desc.channel_count(),
-                    rate: desc.sample_rate(),
-                    data: d,
-                })
-            },
-            Err(_) => {
-                Err(format!("vorbis decoding error: {}", &path))
-            }
+            Ok(d) => Ok(DecodedFile {
+                channels: desc.channel_count(),
+                rate: desc.sample_rate(),
+                data: d,
+            }),
+            Err(_) => Err(format!("vorbis decoding error: {}", &path)),
         }
     } else {
         Err(format!("file not found: {}", &path))
@@ -141,8 +137,7 @@ fn handle_minimp3(path: &str) -> Result<DecodedFile, String> {
             let mut rate: u32 = 0;
             let mut ch: u32 = 0;
             let mut pcm_data = Vec::<f32>::new();
-            while let Some(frame) = decoder.next()
-            {
+            while let Some(frame) = decoder.next() {
                 if let Audio(audio) = frame {
                     let sample_rate = audio.sample_rate();
                     let channels = audio.channels() as u32;
@@ -213,7 +208,11 @@ pub fn scan_loudness(path: &str) -> Result<ComputedLoudness, String> {
     }
 }
 
-fn compute_and_update_model(loudness: &ComputedLoudness, target_loudness: f32, entry: &mut Entry) -> AnalysisDifference {
+fn compute_and_update_model(
+    loudness: &ComputedLoudness,
+    target_loudness: f32,
+    entry: &mut Entry,
+) -> AnalysisDifference {
     let peak = linear_to_db(loudness.true_peak);
     let gain = loudness_to_gain(loudness.integrated_loudness, target_loudness);
     let peak_after_gain = peak + gain;
@@ -224,7 +223,11 @@ fn compute_and_update_model(loudness: &ComputedLoudness, target_loudness: f32, e
 
     let mut diff = AnalysisDifference {
         path: entry.location.file.clone(),
-        human_name: format!("{} - {}", entry.artist.as_ref().unwrap_or(&"?".to_string()), entry.title.as_ref().unwrap_or(&"?".to_string())),
+        human_name: format!(
+            "{} - {}",
+            entry.artist.as_ref().unwrap_or(&"?".to_string()),
+            entry.title.as_ref().unwrap_or(&"?".to_string())
+        ),
         original_analyzed_db: None,
         original_perceived_db: None,
         original_peak_db: None,
@@ -256,7 +259,7 @@ pub fn collection_analysis<T>(
     target_loudness: f32,
     cache: Arc<Mutex<Cache>>,
     progress_callback: T,
-    diff: &mut Vec<AnalysisDifference>
+    diff: &mut Vec<AnalysisDifference>,
 ) where
     T: Fn(&str) + Send + 'static + std::marker::Sync,
 {
@@ -289,7 +292,11 @@ pub fn collection_analysis<T>(
                 match v {
                     Some(info) => {
                         trace!("cache hit {} ", entry.location.file);
-                        let diff = compute_and_update_model(&info.loudness_info, target_loudness, &mut entry);
+                        let diff = compute_and_update_model(
+                            &info.loudness_info,
+                            target_loudness,
+                            &mut entry,
+                        );
                         locked_diff.lock().push(diff);
                         progress_callback(&entry.location.file);
                         return;

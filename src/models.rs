@@ -1,5 +1,5 @@
 use parking_lot::Mutex;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 #[derive(Debug, Deserialize)]
@@ -258,5 +258,5 @@ pub struct AnalysisDifference {
     pub original_peak_db: Option<f64>,
     pub computed_analyzed_db: f64,
     pub computed_perceived_db: f64,
-    pub computed_peak_db: f64
+    pub computed_peak_db: f64,
 }

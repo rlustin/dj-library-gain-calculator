@@ -1,9 +1,9 @@
 use crate::analysis::collection_analysis;
 use crate::cache::*;
 use crate::error::AppError;
+use crate::models::AnalysisDifference;
 use crate::models::Nml;
 use crate::models::Node;
-use crate::models::AnalysisDifference;
 use crate::progress::ProgressBar;
 use clap::ArgMatches;
 use directories::ProjectDirs;
@@ -96,12 +96,22 @@ pub fn run(matches: &ArgMatches) -> Result<(), AppError> {
     let mut report_data = Vec::<AnalysisDifference>::new();
 
     let difference_report_path = if matches.is_present("difference-report") {
-        Some(matches.value_of("difference-report").ok_or("difference_report.html"))
+        Some(
+            matches
+                .value_of("difference-report")
+                .ok_or("difference_report.html"),
+        )
     } else {
         None
     };
 
-    collection_analysis(&mut nml, target_loudness, cache, progress_callback, &mut report_data);
+    collection_analysis(
+        &mut nml,
+        target_loudness,
+        cache,
+        progress_callback,
+        &mut report_data,
+    );
 
     progress_bar_after.lock().finish();
 
@@ -165,9 +175,7 @@ fn deserialize_collection(path: &str) -> Result<Nml, AppError> {
     let file = File::open(path)?;
     let buf_reader = BufReader::new(file);
     match from_reader(buf_reader) {
-        Ok(nml) => {
-            Ok(nml)
-        }
+        Ok(nml) => Ok(nml),
         Err(e) => {
             println!("{:?}", e);
             return Err("deserialization error".into());
@@ -356,11 +364,18 @@ fn serialize_collection(
         if entry.loudness.is_some() {
             let loudness = entry.loudness.as_ref().unwrap();
             let mut loudness_start_tag = BytesStart::owned("LOUDNESS", "LOUDNESS".len());
-            loudness_start_tag.push_attribute(("PEAK_DB", &*format!("{:.6}", loudness.peak_db.unwrap_or(0.0))));
-            loudness_start_tag
-                .push_attribute(("PERCEIVED_DB", &*format!("{:.6}", loudness.perceived_db.unwrap_or(0.0))));
-            loudness_start_tag
-                .push_attribute(("ANALYZED_DB", &*format!("{:.6}", loudness.analyzed_db.unwrap_or(0.0))));
+            loudness_start_tag.push_attribute((
+                "PEAK_DB",
+                &*format!("{:.6}", loudness.peak_db.unwrap_or(0.0)),
+            ));
+            loudness_start_tag.push_attribute((
+                "PERCEIVED_DB",
+                &*format!("{:.6}", loudness.perceived_db.unwrap_or(0.0)),
+            ));
+            loudness_start_tag.push_attribute((
+                "ANALYZED_DB",
+                &*format!("{:.6}", loudness.analyzed_db.unwrap_or(0.0)),
+            ));
             writer.write_event(Event::Start(loudness_start_tag))?;
             writer.write_event(Event::End(BytesEnd::borrowed(b"LOUDNESS")))?;
         }
