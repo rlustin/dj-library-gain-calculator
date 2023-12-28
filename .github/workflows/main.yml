@@ -14,35 +14,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1.0.1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          components: rustfmt, clippy
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install sqlite3 development package
         run: sudo apt-get update; sudo apt-get install libsqlite3-dev
 
-      - name: Build
-        uses: actions-rs/cargo@v1.0.1
-        with:
-          command: build
-          args: --verbose
-
       - name: Install libxml2
         run: sudo apt-get update; sudo apt-get install libxml2-utils; which xmllint; xmllint --version
 
-      - name: Run cargo test
-        uses: actions-rs/cargo@v1.0.1
-        with:
-          command: test
+      - name: Build
+        uses: dtolnay/rust-toolchain@stable
+        run: cargo build
 
-      - name: Run cargo fmt
-        uses: actions-rs/cargo@v1.0.1
+      - name: Test
+        uses: dtolnay/rust-toolchain@stable
+        run: cargo test
 
-      - name: Run cargo clippy
-        uses: actions-rs/cargo@v1.0.1
+      - name: Fmt
+        uses: dtolnay/rust-toolchain@stable
+        run: cargo fmt
+
+      - name: Clippy
+        uses: dtolnay/rust-toolchain@stable
+        run: cargo clippy
