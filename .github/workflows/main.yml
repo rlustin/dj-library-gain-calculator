@@ -26,17 +26,13 @@ jobs:
         run: sudo apt-get update; sudo apt-get install libxml2-utils; which xmllint; xmllint --version
 
       - name: Build
-        uses: dtolnay/rust-toolchain@stable
         run: cargo build
 
       - name: Test
-        uses: dtolnay/rust-toolchain@stable
         run: cargo test
 
       - name: Fmt
-        uses: dtolnay/rust-toolchain@stable
         run: cargo fmt
 
       - name: Clippy
-        uses: dtolnay/rust-toolchain@stable
         run: cargo clippy
