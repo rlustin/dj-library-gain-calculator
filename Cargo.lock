@@ -375,7 +375,7 @@ dependencies = [
  "assert_cmd",
  "audrey",
  "bitflags 2.6.0",
- "cfg-if 0.1.10",
+ "cfg-if 1.0.0",
  "chrono",
  "clap",
  "claxon",
