@@ -25,9 +25,9 @@ use tempdir::TempDir;
 static DEFAULT_CACHE_FILE_NAME: &str = "dj-library-gain-calculator.db";
 
 pub fn run(matches: &ArgMatches) -> Result<(), AppError> {
-    let input_path = matches.value_of("input").ok_or("no input provided")?;
+    let input_path = matches.get_one::<String>("input").ok_or("no input provided")?;
     let target_loudness: f32 = matches
-        .value_of("target")
+        .get_one::<String>("target")
         .ok_or("no target loudness provided")?
         .parse()?;
 
@@ -36,7 +36,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), AppError> {
     let output_stream = output_stream(&matches, &output_temp_path)?;
 
     // try to find the cache
-    let maybe_cache_file = matches.value_of("cache-file");
+    let maybe_cache_file = matches.get_one::<String>("cache-file");
     let cache_file = match maybe_cache_file {
         Some(d) => PathBuf::from(d),
         None => match ProjectDirs::from("org", "rlustin", "dj-library-gain-calculator") {
@@ -63,13 +63,13 @@ pub fn run(matches: &ArgMatches) -> Result<(), AppError> {
     info!("Database path: {}", cache_file.display());
 
     let mut flags = CachePolicy::empty();
-    if matches.is_present("no-cache-read") {
+    if matches.contains_id("no-cache-read") {
         flags |= CachePolicy::NO_READ;
     }
-    if matches.is_present("no-cache-write") {
+    if matches.contains_id("no-cache-write") {
         flags |= CachePolicy::NO_WRITE;
     }
-    if matches.is_present("purge-cache") {
+    if matches.contains_id("purge-cache") {
         flags |= CachePolicy::PURGE;
     }
     let maybe_cache = Cache::new(&cache_file, flags)?;
@@ -95,10 +95,10 @@ pub fn run(matches: &ArgMatches) -> Result<(), AppError> {
 
     let mut report_data = Vec::<AnalysisDifference>::new();
 
-    let difference_report_path = if matches.is_present("difference-report") {
+    let difference_report_path = if matches.contains_id("difference-report") {
         Some(
             matches
-                .value_of("difference-report")
+                .get_one::<String>("difference-report")
                 .ok_or("difference_report.html"),
         )
     } else {
@@ -134,13 +134,13 @@ pub fn run(matches: &ArgMatches) -> Result<(), AppError> {
             .duration_since(UNIX_EPOCH)?
             .as_secs()
             .to_string();
-        let backup_path = input_path.to_owned() + ".backup-" + &timestamp;
+        let backup_path = input_path.to_owned().to_owned() + ".backup-" + &timestamp;
         copy(input_path, backup_path)?;
 
         // Replace the input collection.
         copy(&output_temp_path, input_path)?;
-    } else if matches.value_of("output").is_some() {
-        let output_path = matches.value_of("output").ok_or("no output provided")?;
+    } else if matches.get_one::<String>("output").is_some() {
+        let output_path = matches.get_one::<String>("output").ok_or("no output provided")?;
 
         copy(&output_temp_path, output_path)?;
     }
@@ -152,8 +152,8 @@ fn output_stream(
     matches: &ArgMatches,
     output_temp_path: &PathBuf,
 ) -> Result<Box<dyn Write>, AppError> {
-    match matches.value_of("output") {
-        Some(output_path) => match output_path {
+    match matches.get_one::<String>("output") {
+        Some(output_path) => match output_path.as_str() {
             "-" => Ok(Box::new(BufWriter::new(std::io::stdout()))),
             _ => Ok(Box::new(BufWriter::new(File::create(output_temp_path)?))),
         },
@@ -168,7 +168,7 @@ fn output_stream(
 }
 
 fn update_in_place(matches: &ArgMatches) -> bool {
-    matches.is_present("write")
+    matches.contains_id("write")
 }
 
 fn deserialize_collection(path: &str) -> Result<Nml, AppError> {

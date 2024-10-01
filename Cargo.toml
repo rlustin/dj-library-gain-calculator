@@ -9,7 +9,7 @@ audrey = "0.3"
 bitflags = "1.2.1"
 cfg-if = "0.1"
 chrono = "0.4.11"
-clap = { version = "2.33.0", features = ["yaml"] }
+clap = { version = "4.5.18", features = ["cargo"] }
 claxon = "0.4.3"
 console = "0.10.0"
 directories = "2.0"
