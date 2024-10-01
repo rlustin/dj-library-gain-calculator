@@ -3,7 +3,6 @@ use std::sync::Arc;
 
 use crate::logging;
 
-pub use indicatif::{ProgressDrawTarget, ProgressStyle};
 
 pub struct ProgressBar {
     inner: Arc<indicatif::ProgressBar>,
