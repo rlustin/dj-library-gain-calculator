@@ -6,7 +6,7 @@ edition = "2021"
 
 [dependencies]
 audrey = "0.3"
-bitflags = "1.2.1"
+bitflags = "2.6.0"
 cfg-if = "0.1"
 chrono = "0.4.11"
 clap = { version = "4.5.18", features = ["cargo"] }
