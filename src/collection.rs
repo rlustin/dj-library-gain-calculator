@@ -194,26 +194,26 @@ fn serialize_collection(
 ) -> Result<(), AppError> {
     let mut writer = Writer::new(Cursor::new(Vec::new()));
 
-    let xml_declaration = BytesDecl::new(b"1.0", Some(b"UTF-8"), Some(b"no"));
+    let xml_declaration = BytesDecl::new("1.0", Some("UTF-8"), Some("no"));
     writer.write_event(Event::Decl(xml_declaration))?;
 
-    let mut nml_start_tag = BytesStart::owned("NML", "NML".len());
+    let mut nml_start_tag = BytesStart::from_content("NML", "NML".len());
     nml_start_tag.push_attribute(("VERSION", collection.version.to_string().as_str()));
     writer.write_event(Event::Start(nml_start_tag))?;
 
-    let mut head_start_tag = BytesStart::owned("HEAD", "HEAD".len());
+    let mut head_start_tag = BytesStart::from_content("HEAD", "HEAD".len());
     head_start_tag.push_attribute(("COMPANY", collection.head.company.as_str()));
     head_start_tag.push_attribute(("PROGRAM", collection.head.program.as_str()));
     writer.write_event(Event::Start(head_start_tag))?;
-    writer.write_event(Event::End(BytesEnd::borrowed(b"HEAD")))?;
+    writer.write_event(Event::End(BytesEnd::new("HEAD")))?;
 
-    writer.write_event(Event::Start(BytesStart::borrowed(
-        b"MUSICFOLDERS",
+    writer.write_event(Event::Start(BytesStart::from_content(
+        "MUSICFOLDERS",
         "MUSICFOLDERS".len(),
     )))?;
-    writer.write_event(Event::End(BytesEnd::borrowed(b"MUSICFOLDERS")))?;
+    writer.write_event(Event::End(BytesEnd::new("MUSICFOLDERS")))?;
 
-    let mut collection_start_tag = BytesStart::owned("COLLECTION", "COLLECTION".len());
+    let mut collection_start_tag = BytesStart::from_content("COLLECTION", "COLLECTION".len());
     collection_start_tag.push_attribute((
         "ENTRIES",
         collection.collection.entries_count.to_string().as_str(),
@@ -223,7 +223,7 @@ fn serialize_collection(
     for entry_ref in collection.collection.entries {
         let entry = entry_ref.lock();
 
-        let mut entry_start_tag = BytesStart::owned("ENTRY", "ENTRY".len());
+        let mut entry_start_tag = BytesStart::from_content("ENTRY", "ENTRY".len());
         if entry.modified_date.is_some() {
             entry_start_tag.push_attribute((
                 "MODIFIED_DATE",
@@ -247,16 +247,16 @@ fn serialize_collection(
         }
         writer.write_event(Event::Start(entry_start_tag))?;
 
-        let mut location_start_tag = BytesStart::owned("LOCATION", "LOCATION".len());
+        let mut location_start_tag = BytesStart::from_content("LOCATION", "LOCATION".len());
         location_start_tag.push_attribute(("DIR", entry.location.directory.as_str()));
         location_start_tag.push_attribute(("FILE", entry.location.file.as_str()));
         location_start_tag.push_attribute(("VOLUME", entry.location.volume.as_str()));
         location_start_tag.push_attribute(("VOLUMEID", entry.location.volume_id.as_str()));
         writer.write_event(Event::Start(location_start_tag))?;
-        writer.write_event(Event::End(BytesEnd::borrowed(b"LOCATION")))?;
+        writer.write_event(Event::End(BytesEnd::new("LOCATION")))?;
 
         if entry.album.is_some() {
-            let mut album_start_tag = BytesStart::owned("ALBUM", "ALBUM".len());
+            let mut album_start_tag = BytesStart::from_content("ALBUM", "ALBUM".len());
             let album = entry.album.as_ref().unwrap();
             if album.track.is_some() {
                 album_start_tag
@@ -266,17 +266,17 @@ fn serialize_collection(
                 album_start_tag.push_attribute(kv_to_tuple("TITLE", &album.title));
             }
             writer.write_event(Event::Start(album_start_tag))?;
-            writer.write_event(Event::End(BytesEnd::borrowed(b"ALBUM")))?;
+            writer.write_event(Event::End(BytesEnd::new("ALBUM")))?;
         }
 
         let mut modification_info_start_tag =
-            BytesStart::owned("MODIFICATION_INFO", "MODIFICATION_INFO".len());
+            BytesStart::from_content("MODIFICATION_INFO", "MODIFICATION_INFO".len());
         modification_info_start_tag
             .push_attribute(("AUTHOR_TYPE", entry.modification_info.author_type.as_str()));
         writer.write_event(Event::Start(modification_info_start_tag))?;
-        writer.write_event(Event::End(BytesEnd::borrowed(b"MODIFICATION_INFO")))?;
+        writer.write_event(Event::End(BytesEnd::new("MODIFICATION_INFO")))?;
 
-        let mut info_start_tag = BytesStart::owned("INFO", "INFO".len());
+        let mut info_start_tag = BytesStart::from_content("INFO", "INFO".len());
         if entry.info.bitrate.is_some() {
             info_start_tag.push_attribute((
                 "BITRATE",
@@ -348,22 +348,22 @@ fn serialize_collection(
             ));
         }
         writer.write_event(Event::Start(info_start_tag))?;
-        writer.write_event(Event::End(BytesEnd::borrowed(b"INFO")))?;
+        writer.write_event(Event::End(BytesEnd::new("INFO")))?;
 
         if entry.tempo.is_some() {
             let tempo = entry.tempo.as_ref().unwrap();
-            let mut tempo_start_tag = BytesStart::owned("TEMPO", "TEMPO".len());
+            let mut tempo_start_tag = BytesStart::from_content("TEMPO", "TEMPO".len());
             if tempo.bpm.is_some() {
                 tempo_start_tag.push_attribute(("BPM", tempo.bpm.as_ref().unwrap().as_str()));
             }
             tempo_start_tag.push_attribute(("BPM_QUALITY", tempo.bpm_quality.as_str()));
             writer.write_event(Event::Start(tempo_start_tag))?;
-            writer.write_event(Event::End(BytesEnd::borrowed(b"TEMPO")))?;
+            writer.write_event(Event::End(BytesEnd::new("TEMPO")))?;
         }
 
         if entry.loudness.is_some() {
             let loudness = entry.loudness.as_ref().unwrap();
-            let mut loudness_start_tag = BytesStart::owned("LOUDNESS", "LOUDNESS".len());
+            let mut loudness_start_tag = BytesStart::from_content("LOUDNESS", "LOUDNESS".len());
             loudness_start_tag.push_attribute((
                 "PEAK_DB",
                 &*format!("{:.6}", loudness.peak_db.unwrap_or(0.0)),
@@ -377,20 +377,20 @@ fn serialize_collection(
                 &*format!("{:.6}", loudness.analyzed_db.unwrap_or(0.0)),
             ));
             writer.write_event(Event::Start(loudness_start_tag))?;
-            writer.write_event(Event::End(BytesEnd::borrowed(b"LOUDNESS")))?;
+            writer.write_event(Event::End(BytesEnd::new("LOUDNESS")))?;
         }
 
         if entry.musical_key.is_some() {
             let musical_key = entry.musical_key.as_ref().unwrap();
-            let mut musical_key_start_tag = BytesStart::owned("MUSICAL_KEY", "MUSICAL_KEY".len());
+            let mut musical_key_start_tag = BytesStart::from_content("MUSICAL_KEY", "MUSICAL_KEY".len());
             musical_key_start_tag.push_attribute(("VALUE", musical_key.value.as_ref()));
             writer.write_event(Event::Start(musical_key_start_tag))?;
-            writer.write_event(Event::End(BytesEnd::borrowed(b"MUSICAL_KEY")))?;
+            writer.write_event(Event::End(BytesEnd::new("MUSICAL_KEY")))?;
         }
 
         if entry.cue_v2.is_some() {
             for cue in entry.cue_v2.as_ref().unwrap() {
-                let mut cue_start = BytesStart::owned("CUE_V2", "CUE_V2".len());
+                let mut cue_start = BytesStart::from_content("CUE_V2", "CUE_V2".len());
                 cue_start.push_attribute(("NAME", cue.name.as_ref()));
                 cue_start.push_attribute(("DISPL_ORDER", cue.display_order.to_string().as_ref()));
                 cue_start.push_attribute(("TYPE", cue.cue_type.to_string().as_ref()));
@@ -399,17 +399,17 @@ fn serialize_collection(
                 cue_start.push_attribute(("REPEATS", cue.repeats.to_string().as_ref()));
                 cue_start.push_attribute(("HOTCUE", cue.hotcue.to_string().as_ref()));
                 writer.write_event(Event::Start(cue_start))?;
-                writer.write_event(Event::End(BytesEnd::borrowed(b"CUE_V2")))?;
+                writer.write_event(Event::End(BytesEnd::new("CUE_V2")))?;
             }
         }
 
-        writer.write_event(Event::End(BytesEnd::borrowed(b"ENTRY")))?;
+        writer.write_event(Event::End(BytesEnd::new("ENTRY")))?;
     }
 
-    writer.write_event(Event::End(BytesEnd::borrowed(b"COLLECTION")))?;
+    writer.write_event(Event::End(BytesEnd::new("COLLECTION")))?;
 
     if collection.sets.is_some() {
-        let mut sets_tag = BytesStart::owned("SETS", "SETS".len());
+        let mut sets_tag = BytesStart::from_content("SETS", "SETS".len());
         sets_tag.push_attribute((
             "ENTRIES",
             collection
@@ -421,40 +421,40 @@ fn serialize_collection(
                 .as_ref(),
         ));
         writer.write_event(Event::Start(sets_tag))?;
-        writer.write_event(Event::End(BytesEnd::borrowed(b"SETS")))?;
+        writer.write_event(Event::End(BytesEnd::new("SETS")))?;
     }
 
     if collection.playlists.is_some() {
-        let playlists_tag = BytesStart::owned("PLAYLISTS", "PLAYLISTS".len());
+        let playlists_tag = BytesStart::from_content("PLAYLISTS", "PLAYLISTS".len());
         writer.write_event(Event::Start(playlists_tag))?;
 
         for node in collection.playlists.unwrap().nodes {
             writer = write_node(writer, &node)?;
         }
 
-        writer.write_event(Event::End(BytesEnd::borrowed(b"PLAYLISTS")))?;
+        writer.write_event(Event::End(BytesEnd::new("PLAYLISTS")))?;
     }
 
     if collection.sorting_orders.is_some() {
         for sorting_order in collection.sorting_orders.as_ref().unwrap() {
-            let mut sorting_order_tag = BytesStart::owned("SORTING_ORDER", "SORTING_ORDER".len());
+            let mut sorting_order_tag = BytesStart::from_content("SORTING_ORDER", "SORTING_ORDER".len());
             sorting_order_tag.push_attribute(("PATH", sorting_order.path.as_str()));
             writer.write_event(Event::Start(sorting_order_tag))?;
 
             if sorting_order.sorting_data.is_some() {
                 let sorting_data = sorting_order.sorting_data.as_ref().unwrap();
-                let mut sorting_data_tag = BytesStart::owned("SORTING_DATA", "SORTING_DATA".len());
+                let mut sorting_data_tag = BytesStart::from_content("SORTING_DATA", "SORTING_DATA".len());
                 sorting_data_tag.push_attribute(("IDX", sorting_data.idx.as_ref()));
                 sorting_data_tag.push_attribute(("ORD", sorting_data.ord.as_ref()));
                 writer.write_event(Event::Start(sorting_data_tag))?;
-                writer.write_event(Event::End(BytesEnd::borrowed(b"SORTING_DATA")))?;
+                writer.write_event(Event::End(BytesEnd::new("SORTING_DATA")))?;
             }
 
-            writer.write_event(Event::End(BytesEnd::borrowed(b"SORTING_ORDER")))?;
+            writer.write_event(Event::End(BytesEnd::new("SORTING_ORDER")))?;
         }
     }
 
-    writer.write_event(Event::End(BytesEnd::borrowed(b"NML")))?;
+    writer.write_event(Event::End(BytesEnd::new("NML")))?;
 
     output_stream.write_all(writer.into_inner().into_inner().as_ref())?;
 
@@ -465,14 +465,14 @@ fn write_node(
     mut writer: Writer<Cursor<Vec<u8>>>,
     node: &Node,
 ) -> Result<Writer<Cursor<Vec<u8>>>, AppError> {
-    let mut node_tag = BytesStart::owned("NODE", "NODE".len());
+    let mut node_tag = BytesStart::from_content("NODE", "NODE".len());
     node_tag.push_attribute(("TYPE", node.node_type.as_str()));
     node_tag.push_attribute(("NAME", node.name.as_str()));
     writer.write_event(Event::Start(node_tag))?;
 
     if node.subnodes.is_some() {
         let subnodes = node.subnodes.as_ref().unwrap();
-        let mut sub_node_tag = BytesStart::owned("SUBNODES", "SUBNODES".len());
+        let mut sub_node_tag = BytesStart::from_content("SUBNODES", "SUBNODES".len());
         sub_node_tag.push_attribute(("COUNT", subnodes.count.to_string().as_ref()));
         writer.write_event(Event::Start(sub_node_tag))?;
 
@@ -480,12 +480,12 @@ fn write_node(
             writer = write_node(writer, sub_node)?;
         }
 
-        writer.write_event(Event::End(BytesEnd::borrowed(b"SUBNODES")))?;
+        writer.write_event(Event::End(BytesEnd::new("SUBNODES")))?;
     }
 
     if node.playlist.is_some() {
         let playlist = node.playlist.as_ref().unwrap();
-        let mut playlist_tag = BytesStart::owned("PLAYLIST", "PLAYLIST".len());
+        let mut playlist_tag = BytesStart::from_content("PLAYLIST", "PLAYLIST".len());
         playlist_tag.push_attribute(("ENTRIES", playlist.entries_count.to_string().as_str()));
         playlist_tag.push_attribute(("TYPE", playlist.playlist_type.as_str()));
         playlist_tag.push_attribute(("UUID", playlist.uuid.as_str()));
@@ -493,24 +493,24 @@ fn write_node(
 
         if playlist.entries.is_some() {
             for entry in playlist.entries.as_ref().unwrap() {
-                let entry_tag = BytesStart::owned("ENTRY", "ENTRY".len());
+                let entry_tag = BytesStart::from_content("ENTRY", "ENTRY".len());
                 writer.write_event(Event::Start(entry_tag))?;
 
-                let mut primary_key_tag = BytesStart::owned("PRIMARYKEY", "PRIMARY_KEY".len());
+                let mut primary_key_tag = BytesStart::from_content("PRIMARYKEY", "PRIMARY_KEY".len());
                 primary_key_tag
                     .push_attribute(("TYPE", entry.primary_key.primary_key_type.as_ref()));
                 primary_key_tag.push_attribute(("KEY", entry.primary_key.key.as_ref()));
                 writer.write_event(Event::Start(primary_key_tag))?;
 
-                writer.write_event(Event::End(BytesEnd::borrowed(b"PRIMARYKEY")))?;
-                writer.write_event(Event::End(BytesEnd::borrowed(b"ENTRY")))?;
+                writer.write_event(Event::End(BytesEnd::new("PRIMARYKEY")))?;
+                writer.write_event(Event::End(BytesEnd::new("ENTRY")))?;
             }
         }
 
-        writer.write_event(Event::End(BytesEnd::borrowed(b"PLAYLIST")))?;
+        writer.write_event(Event::End(BytesEnd::new("PLAYLIST")))?;
     }
 
-    writer.write_event(Event::End(BytesEnd::borrowed(b"NODE")))?;
+    writer.write_event(Event::End(BytesEnd::new("NODE")))?;
 
     Ok(writer)
 }
