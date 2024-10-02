@@ -46,7 +46,7 @@ impl Cache {
                          analyzed_db REAL,
                          peak_db REAL
                      )",
-                    NO_PARAMS,
+                     (),
                 )?;
 
                 Ok(Cache { db, policy })
