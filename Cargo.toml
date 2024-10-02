@@ -13,7 +13,7 @@ clap = { version = "4.5.18", features = ["cargo"] }
 claxon = "0.4.3"
 console = "0.15.8"
 directories = "2.0"
-ebur128 = "0.1.0"
+ebur128 = "0.1.9"
 hound = "3.5.1"
 indicatif = "0.14.0"
 lazy_static = "1.5.0"
