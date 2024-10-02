@@ -18,7 +18,7 @@ hound = "3.4.0"
 indicatif = "0.14.0"
 lazy_static = "1.4.0"
 log = "0.4"
-parking_lot = { version = "0.10", features = ["serde"] }
+parking_lot = { version = "0.12.3", features = ["serde"] }
 quick-xml = { version = "0.26.0", features = ["serialize"] }
 rayon = "1.10.0"
 rmp3 = { version = "0.3", features = ["float"] }
