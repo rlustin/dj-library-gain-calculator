@@ -1,7 +1,7 @@
 use assert_cmd::prelude::*;
 use std::fs::read_to_string;
 use std::process::Command;
-use tempdir::TempDir;
+use tempfile::TempDir;
 
 #[test]
 fn it_fails_when_file_does_not_exist() -> Result<(), Box<dyn std::error::Error>> {
@@ -45,7 +45,7 @@ fn it_processes_a_1_element_collection_to_a_file() -> Result<(), Box<dyn std::er
     let mut command = Command::cargo_bin("dj-library-gain-calculator")?;
 
     let input_path = "tests/vectors/1_element_collection.nml";
-    let output_dir = TempDir::new("tests").unwrap();
+    let output_dir = TempDir::new().unwrap();
     let output_path = output_dir.path().join("output.nml");
 
     command

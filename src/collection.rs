@@ -20,7 +20,7 @@ use std::io::{BufReader, BufWriter, Write};
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
-use tempdir::TempDir;
+use tempfile::TempDir;
 
 static DEFAULT_CACHE_FILE_NAME: &str = "dj-library-gain-calculator.db";
 
@@ -31,7 +31,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), AppError> {
         .ok_or("no target loudness provided")?
         .parse()?;
 
-    let temp_dir = TempDir::new("traktor")?;
+    let temp_dir = TempDir::new()?;
     let output_temp_path = temp_dir.path().join("collection.nml");
     let output_stream = output_stream(&matches, &output_temp_path)?;
 
@@ -520,7 +520,7 @@ mod tests {
     use std::process::{Command, Stdio};
     use std::str::from_utf8;
 
-    use tempdir::TempDir;
+    use tempfile::TempDir;
 
     use super::*;
 
@@ -540,7 +540,7 @@ mod tests {
     }
 
     fn serialization_roundtrip_test(input_path: &str) {
-        let output_dir = TempDir::new("tests").unwrap();
+        let output_dir = TempDir::new().unwrap();
         let output_path = output_dir.path().join("output.nml");
         let output_stream = Box::new(File::create(output_path.clone()).unwrap());
 
