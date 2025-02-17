@@ -33,7 +33,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), AppError> {
 
     let temp_dir = TempDir::new()?;
     let output_temp_path = temp_dir.path().join("collection.nml");
-    let output_stream = output_stream(&matches, &output_temp_path)?;
+    let output_stream = output_stream(matches, &output_temp_path)?;
 
     // try to find the cache
     let maybe_cache_file = matches.get_one::<String>("cache-file");
@@ -128,7 +128,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), AppError> {
 
     trace!("Saving collection");
 
-    if update_in_place(&matches) {
+    if update_in_place(matches) {
         // Backup the collection.
         let timestamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)?
@@ -158,7 +158,7 @@ fn output_stream(
             _ => Ok(Box::new(BufWriter::new(File::create(output_temp_path)?))),
         },
         None => {
-            if update_in_place(&matches) {
+            if update_in_place(matches) {
                 Ok(Box::new(BufWriter::new(File::create(output_temp_path)?)))
             } else {
                 Ok(Box::new(BufWriter::new(std::io::stdout())))
@@ -178,7 +178,7 @@ fn deserialize_collection(path: &str) -> Result<Nml, AppError> {
         Ok(nml) => Ok(nml),
         Err(e) => {
             println!("{:?}", e);
-            return Err("deserialization error".into());
+            Err("deserialization error".into())
         }
     }
 }

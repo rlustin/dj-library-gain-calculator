@@ -1,5 +1,3 @@
-use quick_xml;
-use std;
 use std::error::Error;
 
 #[derive(Debug)]

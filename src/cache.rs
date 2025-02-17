@@ -37,7 +37,7 @@ impl Cache {
                 }
             }
         }
-        match Connection::open(&path) {
+        match Connection::open(path) {
             Ok(db) => {
                 db.execute(
                     "CREATE TABLE IF NOT EXISTS tracks (
@@ -72,7 +72,7 @@ impl Cache {
                 panic!("Error in SQL query in Cache::get, fix this.");
             }
         };
-        match statement.query(&[key]) {
+        match statement.query([key]) {
             Ok(mut rows) => {
                 if let Some(row) = rows.next().unwrap() {
                     let integrated_loudness = row.get::<_, f64>(1).unwrap() as f32;
@@ -104,7 +104,7 @@ impl Cache {
         }
         match self.db.execute(
             "INSERT INTO tracks (audio_id, analyzed_db, peak_db) VALUES (?1, ?2, ?3)",
-            &[
+            [
                 &file.audio_id,
                 &file.loudness_info.integrated_loudness.to_string(),
                 &file.loudness_info.true_peak.to_string(),

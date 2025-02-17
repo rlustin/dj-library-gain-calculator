@@ -39,7 +39,7 @@ fn i32_to_float(integer: i32) -> f32 {
 }
 
 fn handle_audrey(path: &str) -> Result<DecodedFile, String> {
-    let maybe_file = audrey::read::open(&path);
+    let maybe_file = audrey::read::open(path);
     if let Ok(mut file) = maybe_file {
         let desc = file.description();
 
@@ -157,7 +157,7 @@ fn handle_minimp3(path: &str) -> Result<DecodedFile, String> {
             }
             Ok(DecodedFile {
                 channels: ch,
-                rate: rate as u32,
+                rate,
                 data: pcm_data,
             })
         }
@@ -179,10 +179,10 @@ pub fn scan_loudness(path: &str) -> Result<ComputedLoudness, String> {
         .to_lowercase()
         .as_str()
     {
-        "ogg" => handle_audrey(&path),
-        "wav" => handle_hound(&path),
-        "flac" => handle_claxon(&path),
-        "mp3" => handle_minimp3(&path),
+        "ogg" => handle_audrey(path),
+        "wav" => handle_hound(path),
+        "flac" => handle_claxon(path),
+        "mp3" => handle_minimp3(path),
         _ => Err(format!("unknown file type: {}", &path)),
     };
 
@@ -251,7 +251,7 @@ fn compute_and_update_model(
             peak_db: Some(peak as f64),
         })
     }
-    return diff;
+    diff
 }
 
 pub fn collection_analysis<T>(
@@ -288,7 +288,7 @@ pub fn collection_analysis<T>(
             path.push_str(&entry.location.file);
 
             if let Some(audio_id) = &entry.audio_id {
-                let v = cache.lock().get(&audio_id);
+                let v = cache.lock().get(audio_id);
                 match v {
                     Some(info) => {
                         trace!("cache hit {} ", entry.location.file);
